@@ -229,7 +229,8 @@ const MenuDataviewObjectList = forwardRef<I.MenuRef, I.Menu>((props, ref) => {
 		};
 
 		if (item.id == 'add') {
-			const param = Relation.getParamForNewObject(filter, relation);
+			const name = cellRef?.getEntryText?.() || filter;
+			const param = Relation.getParamForNewObject(name, relation);
 			const details = Object.assign(param.details, addParam.details || {});
 
 			U.Object.create('', '', details, I.BlockPosition.Bottom, '', param.flags, analytics.route.relation, (message: any) => {

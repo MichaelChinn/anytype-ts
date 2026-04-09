@@ -364,6 +364,7 @@ const CellObject = forwardRef<I.CellRef, I.Cell>((props, ref) => {
 		blur,
 		setEditing,
 		isEditing: () => isEditing,
+		getEntryText: () => getValue().new,
 	}));
 
 	return (
