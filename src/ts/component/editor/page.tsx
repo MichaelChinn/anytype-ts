@@ -2087,8 +2087,8 @@ const EditorPage = forwardRef<I.BlockRef, Props>((props, ref) => {
 			let count = 1;
 
 			if (message.isSameBlockCaret) {
-				id = focused;
-			} else 
+				// Caret stays in same position — browser already placed it correctly, skip focusSet
+			} else
 			if (message.blockIds && message.blockIds.length) {
 				count = message.blockIds.length;
 
@@ -2102,22 +2102,22 @@ const EditorPage = forwardRef<I.BlockRef, Props>((props, ref) => {
 
 				const lastId = message.blockIds[count - 1];
 				const block = S.Block.getLeaf(rootId, lastId);
-				
+
 				if (!block) {
 					return;
 				};
-				
+
 				id = block.id;
 				from = to = block.getLength();
 
 				keyboard.setFocus(false);
+				focusSet(id, from, to, id != focused);
 			} else
 			if (message.caretPosition >= 0) {
 				id = focused;
 				from = to = message.caretPosition;
+				focusSet(id, from, to, false);
 			};
-
-			focusSet(id, from, to, id != focused);
 			analytics.event('PasteBlock', { count });
 		});
 	};
