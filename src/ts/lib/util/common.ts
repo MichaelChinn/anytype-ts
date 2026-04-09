@@ -511,6 +511,12 @@ class UtilCommon {
 			return false;
 		};
 
+		// Silently redirect to dashboard for deleted/missing objects
+		if ([ J.Error.Code.NOT_FOUND, J.Error.Code.OBJECT_DELETED ].includes(code)) {
+			U.Space.openDashboard({ replace: true });
+			return false;
+		};
+
 		S.Popup.open('confirm', {
 			data: {
 				iconParam: { name: 'popup/header/error', color: 'orange' },

@@ -124,6 +124,7 @@ const EditorPage = forwardRef<I.BlockRef, Props>((props, ref) => {
 
 		C.ObjectOpen(rootId, '', S.Common.space, (message: any) => {
 			if (!U.Common.checkErrorOnOpen(rootId, message.error.code)) {
+				setIsDeleted(true);
 				return;
 			};
 
