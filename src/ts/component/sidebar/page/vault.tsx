@@ -737,10 +737,10 @@ const SidebarPageVault = forwardRef<{}, I.SidebarPageComponent>((props, ref) => 
 				</InfiniteLoader>
 			</div>
 
-			<SidebarSupportBanner />
-
 			<div className={cnf.join(' ')}>
 				<div className="grad" />
+				{!vaultIsMinimal ? <SidebarSupportBanner /> : ''}
+				
 				<div className="sides">
 					<div className="side left">
 						<div 
@@ -760,6 +760,8 @@ const SidebarPageVault = forwardRef<{}, I.SidebarPageComponent>((props, ref) => 
 					</div>
 
 					<div className="side right">
+						{vaultIsMinimal ? <SidebarSupportBanner /> : ''}
+
 						<Icon
 							name="vault/gallery"
 							className="gallery"

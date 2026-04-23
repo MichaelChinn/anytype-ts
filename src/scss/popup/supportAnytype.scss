@@ -2,19 +2,55 @@
 
 .popups {
 	.popup.popupSupportAnytype {
-		.innerWrap { width: 424px; padding: 32px; text-align: center; }
+		.innerWrap { width: 960px; max-height: calc(100vh - 64px); padding: 0px; border-radius: 16px; background: var(--color-bg-primary); overflow-y: auto; overflow-x: hidden; }
 
-		.iconWrapper { display: flex; width: 72px; height: 72px; border-radius: 50%; margin: 0px auto 20px; align-items: center; justify-content: center; background: var(--color-shape-highlight-medium); }
-		.iconWrapper {
-			.icon.heart { width: 36px; height: 36px; color: var(--color-system-accent-100); }
+		.hero {
+			position: relative; width: 100%; height: 320px; flex-shrink: 0;
+			background-image: url('~img/popup/supportAnytype/hero.svg');
+			background-size: 100% 100%; background-repeat: no-repeat; background-position: top center;
+		}
+		.hero {
+			.heroText {
+				position: absolute; left: 128px; right: 128px; top: 53px;
+				font-weight: 300; font-size: 64px; line-height: 64px; letter-spacing: -3px; color: var(--color-text-inversion);
+			}
+			.heroText {
+				.line { display: block; margin: 0px; }
+				.line.left { text-align: left; }
+				.line.right { text-align: right; }
+				.line + .line { margin-top: 10px; }
+			}
 		}
 
-		.title { @include text-header3; margin-bottom: 10px; }
-		.label { margin-bottom: 24px; color: var(--color-text-secondary); }
+		.body { padding: 48px 128px 72px 128px; }
+		.body {
+			.group { display: flex; flex-direction: column; gap: 8px 0px; }
 
-		.buttons { display: flex; flex-direction: column; gap: 10px 0px; align-items: stretch; }
-		.buttons {
-			.button { width: 100%; justify-content: center; }
+			.paragraph,
+			.section {
+				margin: 0px; @include text-paragraph; color: var(--color-text-primary);
+			}
+			.paragraph { font-weight: 400; }
+			.section { font-weight: 600; }
+
+			.buttons { display: flex; flex-direction: row; gap: 0px 16px; margin: 28px 0px; }
+			.buttons {
+				.cta {
+					flex: 1 1 0; display: flex; align-items: center; justify-content: center;
+					height: 52px; border-radius: 12px; background: var(--color-shape-highlight-medium);
+					cursor: pointer;
+				}
+				.cta:hover { background: var(--color-shape-highlight-dark); }
+				.cta {
+					.ctaIcon { width: 20px; height: 20px; flex-shrink: 0; background-size: 20px 20px; background-repeat: no-repeat; background-position: center; }
+					.ctaIcon.card { background-image: url('~img/popup/supportAnytype/card.svg'); }
+					.ctaIcon.heart { background-image: url('~img/popup/supportAnytype/heart.svg'); }
+					.ctaLabel {
+						margin-left: 8px;
+						@include text-paragraph; font-weight: 500; color: var(--color-text-primary);
+					}
+				}
+			}
 		}
 	}
 }

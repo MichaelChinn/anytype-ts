@@ -3,6 +3,7 @@ import raf from 'raf';
 import { Dimmer, Icon, Title } from 'Component';
 
 import MenuHelp from './help';
+import MenuSupportAnytype from './supportAnytype';
 import MenuOnboarding from './onboarding';
 import MenuParticipant from './participant';
 import MenuPublish from './publish';
@@ -97,6 +98,7 @@ const isMac = U.Common.isPlatformMac();
 const Components: any = {
 
 	help:					 MenuHelp,
+	supportAnytype:			 MenuSupportAnytype,
 	onboarding:				 MenuOnboarding,
 	participant:			 MenuParticipant,
 	publish:				 MenuPublish,
