@@ -31,6 +31,7 @@ import PopupApiCreate from './api/create';
 import PopupAIOnboarding from './aiOnboarding';
 import PopupIntroduceChats from './introduceChats';
 import PopupUpload from './upload';
+import PopupSupportAnytype from './supportAnytype';
 import * as I from 'Interface';
 import Storage from 'Lib/storage';
 
@@ -191,6 +192,7 @@ const Popup = forwardRef<{}, I.Popup>((props, ref) => {
 		aiOnboarding:			 PopupAIOnboarding,
 		introduceChats:			 PopupIntroduceChats,
 		upload:					 PopupUpload,
+		supportAnytype:			 PopupSupportAnytype,
 	};
 	
 	const popupId = getId();

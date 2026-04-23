@@ -1067,6 +1067,16 @@
 	"membershipUpsellAnyIdText": "Become a member to make your ID human-readable, so other members can easily find and connect with you.",
 	"membershipUpsellAnyIdExplorePlans": "Explore plans",
 
+	"sidebarSupportBannerTitle": "Support Anytype",
+	"sidebarSupportBannerBuyPlan": "Buy Plan",
+	"sidebarSupportBannerDonate": "Donate",
+	"sidebarSupportBannerViewDetails": "View details",
+
+	"popupSupportAnytypeTitle": "Support Anytype",
+	"popupSupportAnytypeText": "Anytype is built by a small team and funded by our members. Choose a plan to unlock more capacity, or make a one-time donation to help us keep the project independent.",
+	"popupSupportAnytypeBuyPlan": "Buy Plan",
+	"popupSupportAnytypeDonate": "Donate",
+
 	"popupSettingsImportTitle": "Import",
 	"popupSettingsImportText": "Choose application or format of data source",
 	"popupSettingsImportData": "Import data",

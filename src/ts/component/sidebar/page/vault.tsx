@@ -8,6 +8,7 @@ import { IconObject, ObjectName, Filter, Label, Icon, Button, EmptySearch, ChatC
 import * as I from 'Interface';
 import Highlight from 'Lib/highlight';
 import Storage from 'Lib/storage';
+import SidebarSupportBanner from './supportBanner';
 
 const LIMIT = 20;
 const HEIGHT_ITEM = 45;
@@ -735,6 +736,8 @@ const SidebarPageVault = forwardRef<{}, I.SidebarPageComponent>((props, ref) => 
 					)}
 				</InfiniteLoader>
 			</div>
+
+			<SidebarSupportBanner />
 
 			<div className={cnf.join(' ')}>
 				<div className="grad" />
