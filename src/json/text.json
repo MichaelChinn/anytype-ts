@@ -931,6 +931,7 @@
 	"popupSettingsPersonalCommentSend": "Send comments with",
 	"popupSettingsPersonalSectionLists": "Lists",
 	"popupSettingsPersonalGridTitleClick": "Click to edit title in Grid view",
+	"popupSettingsPersonalUnicodeReplace": "Replace typed sequences with unicode symbols",
 	"popupSettingsPersonalSectionInterface": "Interface",
 	"popupSettingsPersonalSectionContentViews": "Content & Views",
 	"popupSettingsPersonalSectionDateTime": "Date & Time",
@@ -1167,6 +1168,7 @@
 
 	"popupSettingsMembershipSwitchMonthly": "Monthly",
 	"popupSettingsMembershipSwitchAnnual": "Annual <span>-20%</span>",
+	"popupSettingsMembershipSwitchLifetime": "Lifetime",
 
 	"popupSettingsMembershipJustEmail": "Just e-mail",
 	"popupSettingsMembershipPerGenericSingle": "per %s",
