@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { Icon } from 'Component';
 import * as I from 'Interface';
 
 const PopupSupportAnytype = forwardRef<{}, I.Popup>(({ close }, ref) => {
@@ -36,11 +37,11 @@ const PopupSupportAnytype = forwardRef<{}, I.Popup>(({ close }, ref) => {
 
 				<div className="buttons">
 					<div className="cta" onClick={onBuyPlan}>
-						<div className="ctaIcon card" />
+						<Icon className="card" name="popup/supportAnytype/card" />
 						<div className="ctaLabel">{translate('popupSupportAnytypeBuyPlan')}</div>
 					</div>
 					<div className="cta" onClick={onDonate}>
-						<div className="ctaIcon heart" />
+						<Icon className="heart" name="popup/supportAnytype/heart" />
 						<div className="ctaLabel">{translate('popupSupportAnytypeDonate')}</div>
 					</div>
 				</div>

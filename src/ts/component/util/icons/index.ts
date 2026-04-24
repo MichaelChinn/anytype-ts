@@ -57,5 +57,6 @@ import './popup/preview';
 import './popup/usecase';
 import './popup/search';
 import './popup/phrase';
+import './popup/supportAnytype';
 import './object';
 import './migration';

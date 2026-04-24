@@ -30,7 +30,7 @@ const SidebarSupportBanner = forwardRef<{}, {}>(({}, ref) => {
 
 	return (
 		<div ref={nodeRef} className={cn.join(' ')} onClick={onClick}>
-			<Icon className="heart" />
+			<Icon className="heart" name="popup/supportAnytype/heart" size={32} />
 			{!vaultIsMinimal ? (
 				<div className="text">
 					<Label className="tag" text={translate('sidebarSupportBannerImportant')} />

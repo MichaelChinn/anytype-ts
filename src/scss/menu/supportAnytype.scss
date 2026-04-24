@@ -5,10 +5,8 @@
 	.menu.menuSupportAnytype {
 		.head { display: flex; align-items: flex-start; gap: 0px 8px; padding: 8px 16px 4px 16px; }
 		.head {
-			.icon.heart {
-				flex-shrink: 0; width: 32px; height: 32px; background-image: url('~img/popup/supportAnytype/heart.svg');
-				background-size: 32px 32px; background-repeat: no-repeat; background-position: center;
-			}
+			.icon.heart { flex-shrink: 0; }
+
 			.text { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; padding-top: 1px; }
 			.text {
 				.label.tag { @include text-small; font-weight: 500; line-height: 16px; color: var(--color-system-destructive-100); }
@@ -25,13 +23,8 @@
 		.items {
 			.item { display: flex; align-items: center; gap: 0px 6px; }
 			.item {
-				.icon {
-					width: 20px; height: 20px; flex-shrink: 0; position: relative; z-index: 2; margin: 0px;
-					background-size: 20px 20px; background-repeat: no-repeat; background-position: center;
-				}
-				.icon.card { background-image: url('~img/popup/supportAnytype/card-small.svg'); }
-				.icon.heart.small { background-image: url('~img/popup/supportAnytype/heart-small.svg'); width: 20px; height: 20px; background-size: 20px 20px; }
-				.icon.info { background-image: url('~img/popup/supportAnytype/info.svg'); background-size: 16px 16px; }
+				.icon { flex-shrink: 0; position: relative; z-index: 2; margin: 0px; }
+				.icon.info > svg { width: 16px !important; height: 16px !important; }
 
 				.label {
 					flex-grow: 1; position: relative; z-index: 2;

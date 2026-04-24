@@ -1,0 +1,9 @@
+import React from 'react';
+
+const Card = (props: React.SVGProps<SVGSVGElement>) => (
+	<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+		<path d="M18.5 14C18.5 15.3807 17.3807 16.5 16 16.5H4C2.61929 16.5 1.5 15.3807 1.5 14V8.5H18.5V14ZM4.25 11.5C3.83579 11.5 3.5 11.8358 3.5 12.25V13.25C3.5 13.6642 3.83579 14 4.25 14H6.25C6.66421 14 7 13.6642 7 13.25V12.25C7 11.8358 6.66421 11.5 6.25 11.5H4.25ZM16 3.5C17.3807 3.5 18.5 4.61929 18.5 6V6.5H1.5V6C1.5 4.61929 2.61929 3.5 4 3.5H16Z" fill="currentColor" />
+	</svg>
+);
+
+export default Card;

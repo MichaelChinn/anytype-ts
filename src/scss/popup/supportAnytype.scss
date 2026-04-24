@@ -38,13 +38,11 @@
 				.cta {
 					flex: 1 1 0; display: flex; align-items: center; justify-content: center;
 					height: 52px; border-radius: 12px; background: var(--color-shape-highlight-medium);
-					cursor: pointer;
 				}
 				.cta:hover { background: var(--color-shape-highlight-dark); }
 				.cta {
-					.ctaIcon { width: 20px; height: 20px; flex-shrink: 0; background-size: 20px 20px; background-repeat: no-repeat; background-position: center; }
-					.ctaIcon.card { background-image: url('~img/popup/supportAnytype/card.svg'); }
-					.ctaIcon.heart { background-image: url('~img/popup/supportAnytype/heart.svg'); }
+					.icon { flex-shrink: 0; }
+					.icon.card { color: var(--color-system-accent-100); }
 					.ctaLabel {
 						margin-left: 8px;
 						@include text-paragraph; font-weight: 500; color: var(--color-text-primary);

@@ -26,7 +26,7 @@ const MenuSupportAnytype = forwardRef<I.MenuRef, I.Menu>((props, ref) => {
 	return (
 		<>
 			<div className="head">
-				<Icon className="heart" />
+				<Icon className="heart" name="popup/supportAnytype/heart" size={32} />
 				<div className="text">
 					<Label className="tag" text={translate('sidebarSupportBannerImportant')} />
 					<Label text={translate('sidebarSupportBannerTitle')} />
@@ -37,11 +37,11 @@ const MenuSupportAnytype = forwardRef<I.MenuRef, I.Menu>((props, ref) => {
 
 			<div className="items">
 				<div className="item" onClick={onBuyPlan}>
-					<Icon className="card" />
+					<Icon className="card" name="popup/supportAnytype/card" />
 					<Label text={translate('sidebarSupportBannerBuyPlan')} />
 				</div>
 				<div className="item" onClick={onDonate}>
-					<Icon className="heart small" />
+					<Icon className="heart small" name="popup/supportAnytype/heartSmall" />
 					<Label text={translate('sidebarSupportBannerDonate')} />
 				</div>
 			</div>
@@ -52,7 +52,7 @@ const MenuSupportAnytype = forwardRef<I.MenuRef, I.Menu>((props, ref) => {
 
 			<div className="items">
 				<div className="item" onClick={onLearnMore}>
-					<Icon className="info" />
+					<Icon className="info" name="popup/supportAnytype/info" />
 					<Label text={translate('sidebarSupportBannerLearnMore')} />
 				</div>
 			</div>
