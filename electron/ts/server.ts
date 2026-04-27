@@ -5,6 +5,13 @@ import { app, dialog, shell } from 'electron';
 import Util from './util';
 
 const stdoutWebProxyPrefix = 'gRPC Web proxy started at: ';
+const stdoutGrpcPrefix = 'gRPC server started at: ';
+// Anytype-fork: structured ready marker emitted by anytype-heart once both
+// gRPC and gRPC-Web listeners accept connections. See anytype-heart
+// `cmd/grpcserver/grpc.go:anytypeHeartReadyPrefix`.
+const stdoutHeartReadyPrefix = 'ANYTYPE_HEART_READY ';
+const stdoutBufferCap = 64 * 1024;
+const stdoutBufferTrim = 32 * 1024;
 const winShutdownStdinMessage = 'shutdown\n';
 
 let maxStdErrChunksBuffer = 10;
@@ -13,9 +20,11 @@ class Server {
 
 	cp: childProcess.ChildProcess | null = null;
 	address: string = '';
+	grpcAddress: string = '';
 	isRunning: boolean = false;
 	stopTriggered: boolean = false;
 	lastErrors: string[] = [];
+	stdoutBuffer: string = '';
 
 	start (binPath: string, workingDir: string): Promise<boolean> {
 		console.log('[Server]: start', binPath, workingDir);
@@ -49,17 +58,71 @@ class Server {
 				this.cp.stdout.on('data', (data: Buffer) => {
 					const str = data.toString();
 
-					if (!this.isRunning && str && (str.indexOf(stdoutWebProxyPrefix) >= 0)) {
-						const regex = new RegExp(stdoutWebProxyPrefix + '([^\n^\s]+)');
+					// Do not delete — we want the raw heart logs in dev console.
+					console.log(str);
 
-						this.address = 'http://' + regex.exec(str)[1];
-						this.isRunning = true;
-
-						resolve(true);
+					if (this.isRunning) {
+						return;
 					};
 
-					// Do not delete
-					console.log(str);
+					// Buffer chunks because boundary lines can split across `data`
+					// events; we need to be able to scan for both legacy lines
+					// regardless of how stdout was framed.
+					this.stdoutBuffer += str;
+					if (this.stdoutBuffer.length > stdoutBufferCap) {
+						this.stdoutBuffer = this.stdoutBuffer.slice(-stdoutBufferTrim);
+					};
+
+					// Fast path: structured marker from the anytype-heart fork —
+					// single line, JSON tail; gives us both addresses at once.
+					const markerStart = this.stdoutBuffer.indexOf(stdoutHeartReadyPrefix);
+					if (markerStart >= 0) {
+						const lineEnd = this.stdoutBuffer.indexOf('\n', markerStart);
+						if (lineEnd >= 0) {
+							const payload = this.stdoutBuffer.slice(markerStart + stdoutHeartReadyPrefix.length, lineEnd).trim();
+							try {
+								const parsed = JSON.parse(payload);
+								if (parsed.grpcWeb) {
+									this.address = 'http://' + parsed.grpcWeb;
+								};
+								if (parsed.grpc) {
+									this.grpcAddress = parsed.grpc;
+								};
+								if (this.address) {
+									this.isRunning = true;
+									this.stdoutBuffer = '';
+									console.log('[Server] heart ready (marker):', this.grpcAddress, this.address);
+									resolve(true);
+									return;
+								};
+							} catch (e) {
+								console.error('[Server] Failed to parse ready marker:', payload, e);
+							};
+						};
+					};
+
+					// Legacy path: stock heart prints two free-form lines that
+					// can land in the same chunk or in separate chunks. Capture
+					// both when available so sync-fs can be spawned with the
+					// gRPC port. Resolve as soon as we see the web-proxy line —
+					// preserves the prior contract for non-fork binaries.
+					if (!this.grpcAddress) {
+						const m = this.stdoutBuffer.match(new RegExp(stdoutGrpcPrefix + '(\\S+)'));
+						if (m) {
+							this.grpcAddress = m[1];
+						};
+					};
+					if (!this.address) {
+						const m = this.stdoutBuffer.match(new RegExp(stdoutWebProxyPrefix + '(\\S+)'));
+						if (m) {
+							this.address = 'http://' + m[1];
+							this.isRunning = true;
+							this.stdoutBuffer = '';
+							const grpcLabel = this.grpcAddress || '(grpc line not seen)';
+							console.log('[Server] heart ready (legacy):', grpcLabel, this.address);
+							resolve(true);
+						};
+					};
 				});
 
 				this.cp.stderr.on('data', (data: Buffer) => {
@@ -139,6 +202,10 @@ class Server {
 
 	setAddress (address: string): void {
 		this.address = address;
+	};
+
+	getGrpcAddress (): string {
+		return this.grpcAddress;
 	};
 
 };

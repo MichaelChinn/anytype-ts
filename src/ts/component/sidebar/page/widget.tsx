@@ -44,7 +44,7 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 		const { total } = S.Record.getMeta(U.Subscription.spaceSubId(J.Constant.subId.archived), '');
 		const ret = [] as I.WidgetSection[];
 
-		if (!spaceview.isOneToOne) {
+		if (__FEATURE_CHAT__ && !spaceview.isOneToOne) {
 			const chats = U.Data.getWidgetChats();
 			if (chats.length) {
 				ret.push(I.WidgetSection.Unread);

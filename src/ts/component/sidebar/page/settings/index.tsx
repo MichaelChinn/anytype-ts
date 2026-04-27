@@ -174,7 +174,7 @@ const SidebarPageSettingsIndex = forwardRef<{}, I.SidebarPageComponent>((props, 
 	const onBack = () => {
 		if (space) {
 			U.Space.openDashboard();
-			S.Common.setLeftSidebarState('vault', 'widget');
+			S.Common.setLeftSidebarState('vault', S.Features.getDefaultSubPage());
 		} else {
 			U.Router.go('/main/void/select', { replace: true });
 		};

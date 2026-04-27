@@ -110,7 +110,7 @@ class Onboarding {
 		};
 
 		S.Common.widgetSectionsSet(S.Common.widgetSections);
-		S.Common.setLeftSidebarState('vault', 'widget');
+		S.Common.setLeftSidebarState('vault', S.Features.getDefaultSubPage());
 	};
 
 	/**

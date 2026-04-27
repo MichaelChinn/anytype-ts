@@ -923,6 +923,9 @@
 	"popupSettingsPersonalAlwaysShowTabbar": "Always show tab bar",
 	"popupSettingsPersonalHardwareAcceleration": "Hardware Acceleration",
 	"popupSettingsPersonalHideFileObjectsInTree": "Hide media files in page tree",
+	"popupSettingsPersonalLegacyWidgetSidebar": "Use legacy widget sidebar (instead of file explorer)",
+	"popupSettingsPersonalShowHiddenFiles": "Show hidden files (.anytype directory)",
+	"popupSettingsPersonalExperimentalRenderers": "Enable experimental custom-type renderers",
 	"popupConfirmHardwareAccelerationTitle": "Restart Required",
 	"popupConfirmHardwareAccelerationText": "Changing hardware acceleration requires restarting the app. Do you want to restart now?",
 	"popupSettingsPersonalRelativeDates": "Use relative dates",
@@ -2390,6 +2393,10 @@
 	"sidebarEdit": "Edit sidebar",
 
 	"sidebarObjectRelationEmpty": "No Properties yet. Add some to this type",
+
+	"sidebarExplorerEmpty": "This workspace is empty",
+	"sidebarExplorerNoMatches": "No matches",
+	"sidebarExplorerSectionFiles": "Files",
 
 	"sidebarObjectShow": "Show",
 	"sidebarObjectSort": "Sort",

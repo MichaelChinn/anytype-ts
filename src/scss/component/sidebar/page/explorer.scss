@@ -1,0 +1,67 @@
+@import "~scss/_mixins";
+
+.sidebarPage.pageExplorer { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.sidebarPage.pageExplorer {
+	.sidebarPageExplorer {
+		display: flex; flex-direction: column; flex-grow: 1; min-height: 0; height: 100%;
+	}
+
+	.head { padding: 0px 8px 8px 8px; flex-shrink: 0; }
+	.head {
+		.spaceName { margin: 0px 0px 8px 0px; padding: 0px; }
+		.filter { margin-top: 4px; }
+	}
+
+	.body { flex-grow: 1; min-height: 0; position: relative; padding: 0px 8px 8px 8px; }
+	.body {
+		.scrollArea { width: 100%; height: 100%; }
+
+		.emptyWrap { padding: 16px 8px; text-align: center; }
+		.emptyWrap {
+			.empty { color: var(--color-text-tertiary); }
+		}
+	}
+
+	.item { position: relative; }
+	.item {
+		.inner {
+			display: flex; flex-direction: row; gap: 0px 2px; align-items: center; height: 28px; padding: 0px 4px; position: relative;
+		}
+		.inner::before {
+			content: ""; position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;
+			background: var(--color-shape-highlight-medium); z-index: 1; pointer-events: none;
+			border-radius: 6px; opacity: 0; transition: opacity $transitionCommon;
+		}
+		.inner:hover::before, .inner.hover::before { opacity: 1; }
+
+		.arrowWrap { width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+		.arrowWrap {
+			.icon { width: 20px; height: 20px; flex-shrink: 0; transition: background $transitionCommon; border-radius: 4px; color: var(--color-text-primary); }
+			.icon.arrow { transform: rotate(-90deg); }
+			&:hover .icon.arrow { background-color: var(--color-shape-highlight-medium); }
+		}
+
+		.iconObject { flex-basis: 20px; margin-right: 6px; flex-shrink: 0; }
+
+		.clickable {
+			flex-grow: 1; display: flex; flex-direction: row; align-items: center; line-height: 20px; min-width: 0; position: relative; z-index: 2;
+		}
+
+		.name { flex-grow: 1; @include text-overflow-nw; }
+	}
+
+	.item.isOpen {
+		.icon.arrow { transform: rotate(0deg); }
+	}
+
+	.item.isSection {
+		.inner { padding-left: 8px; height: 36px; align-items: flex-end; }
+		.inner {
+			.label { color: var(--color-text-tertiary); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+		}
+	}
+
+	.item.isMuted {
+		.name { color: var(--color-text-tertiary); }
+	}
+}

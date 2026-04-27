@@ -499,8 +499,9 @@ class Sidebar {
 		S.Menu.closeAll();
 
 		if (shouldOpen) {
+			const subPage = S.Features.getDefaultSubPage();
 			if (dataLeft.isClosed && dataSubLeft.isClosed) {
-				this.leftPanelSubPageOpen('widget', true, true);
+				this.leftPanelSubPageOpen(subPage, true, true);
 				window.setTimeout(() => {
 					this.setAnimating(false);
 					this.leftPanelOpen(dataLeft.width, true, true);
@@ -509,7 +510,7 @@ class Sidebar {
 			if (dataLeft.isClosed) {
 				this.leftPanelOpen(dataLeft.width, true, true);
 			} else {
-				this.leftPanelSubPageOpen('widget', true, true);
+				this.leftPanelSubPageOpen(subPage, true, true);
 			};
 		} else {
 			this.leftPanelClose(true, true);

@@ -7,12 +7,14 @@ import PageWidgetManage from './page/widgetManage';
 import PageSettingsIndex from './page/settings/index';
 import PageSettingsLibrary from './page/settings/library';
 import PageVault from './page/vault';
+import PageExplorer from './page/explorer';
 import * as I from 'Interface';
 
 const Components = {
 	widget:				 PageWidget,
 	widgetManage:		 PageWidgetManage,
 	vault:				 PageVault,
+	explorer:			 PageExplorer,
 	settings:			 PageSettingsIndex,
 	settingsSpace:		 PageSettingsIndex,
 	settingsTypes:		 PageSettingsLibrary,

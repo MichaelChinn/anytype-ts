@@ -254,13 +254,14 @@ class UtilRouter {
 
 					const onStartingIdCheck = () => {
 						U.Data.onSpaceSwitch({ route, routeParam }, () => {
-							S.Common.setLeftSidebarState('vault', 'widget');
+							const subPage = S.Features.getDefaultSubPage();
+							S.Common.setLeftSidebarState('vault', subPage);
 
 							const dataLeft = sidebar.getData(I.SidebarPanel.Left);
 							const dataSubLeft = sidebar.getData(I.SidebarPanel.SubLeft);
 
 							if (!S.Common.hideSidebar && !((dataLeft.isClosed && dataLeft.savedClosed) || dataSubLeft.savedClosed)) {
-								sidebar.leftPanelSubPageOpen('widget', false, true);
+								sidebar.leftPanelSubPageOpen(subPage, false, true);
 							};
 
 							routeParam?.onRouteChange?.();

@@ -12,6 +12,7 @@ import ConfigManager from './config';
 import WindowManager from './window';
 import UpdateManager from './update';
 import Server from './server';
+import SyncFs from './syncFs';
 import Util from './util';
 import { getSafeStorage } from './safeStorage';
 import { AppWindow, TabView, TabData, CreateTabOptions, AppConfig, Bounds } from './types';
@@ -504,7 +505,14 @@ class Api {
 		// Send shutdown start to all tabs and wait for them to close their sessions
 		this.closeAllTabSessions(win).then(() => {
 			Util.send(win, 'shutdownStart');
-			Server.stop(signal).then(() => this.shutdown(win, relaunch, isUpdate));
+			// Stop sync-fs first so it can flush any in-flight writes through
+			// heart before heart itself shuts down. Errors are non-fatal: the
+			// caller still wants the app to exit.
+			SyncFs.stop(signal)
+				.catch((e: Error) => Util.log('error', '[Api].exit SyncFs.stop: ' + e))
+				.finally(() => {
+					Server.stop(signal).then(() => this.shutdown(win, relaunch, isUpdate));
+				});
 		});
 	};
 

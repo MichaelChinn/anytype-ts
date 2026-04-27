@@ -22,12 +22,14 @@ import UpdateManager from './update';
 import MenuManager from './menu';
 import WindowManager from './window';
 import Server from './server';
+import SyncFs from './syncFs';
 import Util from './util';
 import Cors from '../json/cors.json';
 import { AppWindow } from './types';
 
 const protocol = 'anytype';
 const binPath = fixPathForAsarUnpack(path.join(__dirname, 'dist', `anytypeHelper${is.windows ? '.exe' : ''}`));
+const syncFsBinPath = fixPathForAsarUnpack(path.join(__dirname, 'dist', `anytype-sync-fs${is.windows ? '.exe' : ''}`));
 const store = getSafeStorage();
 
 // gRPC DevTools extension ID
@@ -170,6 +172,23 @@ function waitForLibraryAndCreateWindows () {
 
 	waitLibraryPromise.then(() => {
 		global.serverAddress = Server.getAddress();
+
+		// Anytype-fork: launch the filesystem sync service alongside heart.
+		// Skips silently if no workspace is configured or the binary is missing.
+		const workspace = process.env.ANYTYPE_WORKSPACE_PATH || (store.get('workspacePath') as string) || '';
+		const heartGrpcAddr = Server.getGrpcAddress();
+		if (workspace && heartGrpcAddr) {
+			SyncFs.start({
+				binPath: syncFsBinPath,
+				heartAddr: heartGrpcAddr,
+				workspace,
+				token: process.env.ANYTYPE_SYNC_TOKEN || '',
+				spaceId: process.env.ANYTYPE_SPACE_ID || '',
+			}).catch((err: Error) => {
+				console.error('[main] SyncFs start failed:', err);
+			});
+		};
+
 		createWindow();
 		isReady = true;
 	}, (err: Error) => {

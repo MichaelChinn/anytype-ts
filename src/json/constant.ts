@@ -145,6 +145,7 @@ export default {
 		chatGlobal:	 			'chatGlobal',
 		recentEditMe:	 		'recentEditMe',
 		recentEditAll:	 		'recentEditAll',
+		sidebarExplorer:		'sidebarExplorer',
 	},
 
 	typeKey: {

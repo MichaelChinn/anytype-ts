@@ -12,6 +12,7 @@ import { Chat } from './chat';
 import { Comment } from './comment';
 import { Progress } from './progress';
 import { SparkOnboarding } from './sparkOnboarding';
+import { Features } from './features';
 
 export {
 	Common,
@@ -28,4 +29,5 @@ export {
 	Comment,
 	Progress,
 	SparkOnboarding,
+	Features,
 };

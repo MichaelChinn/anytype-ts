@@ -189,6 +189,33 @@ const PageMainSettingsPersonal = forwardRef<I.PageRef, I.PageSettingsComponent>(
 						onChange={(e: any, v: boolean) => S.Common.hideFileObjectsInTreeSet(v)}
 					/>
 				</div>
+
+				<div className="item">
+					<Label text={translate('popupSettingsPersonalLegacyWidgetSidebar')} />
+					<Switch
+						className="big"
+						value={S.Features.values.legacyWidgetSidebar}
+						onChange={(e: any, v: boolean) => S.Features.set('legacyWidgetSidebar', v)}
+					/>
+				</div>
+
+				<div className="item">
+					<Label text={translate('popupSettingsPersonalShowHiddenFiles')} />
+					<Switch
+						className="big"
+						value={S.Features.values.showHiddenFiles}
+						onChange={(e: any, v: boolean) => S.Features.set('showHiddenFiles', v)}
+					/>
+				</div>
+
+				<div className="item">
+					<Label text={translate('popupSettingsPersonalExperimentalRenderers')} />
+					<Switch
+						className="big"
+						value={S.Features.values.experimentalRenderers}
+						onChange={(e: any, v: boolean) => S.Features.set('experimentalRenderers', v)}
+					/>
+				</div>
 			</div>
 
 			<Label className="section" text={translate('popupSettingsPersonalSectionContentViews')} />

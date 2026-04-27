@@ -126,6 +126,7 @@ const App: FC = () => {
 
 		U.Router.init(history);
 		U.Smile.init();
+		S.Features.init();
 
 		// Keep <html> class in sync with history even if React Router's subscription
 		// gets desynced (e.g. after HMR module swaps). Without this, the tree can end

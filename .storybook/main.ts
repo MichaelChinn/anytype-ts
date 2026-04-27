@@ -66,6 +66,12 @@ const config: StorybookConfig = {
 
 		config.define = {
 			...config.define,
+			'__FEATURE_CHANNELS__': JSON.stringify(false),
+			'__FEATURE_MEMBERSHIP__': JSON.stringify(false),
+			'__FEATURE_PUBLISHING__': JSON.stringify(false),
+			'__FEATURE_EXPERIENCE_GALLERY__': JSON.stringify(false),
+			'__FEATURE_CHAT__': JSON.stringify(false),
+			'__FEATURE_DIRECT_MESSAGES__': JSON.stringify(false),
 			'process.env': '{}',
 		};
 
