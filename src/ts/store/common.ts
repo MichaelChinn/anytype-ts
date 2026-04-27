@@ -53,6 +53,7 @@ class CommonStore {
 	public leftSidebarStateValue = { page: '', subPage: '' };
 
 	public recentEditModeValue: I.RecentEditMode = null;
+	public sidebarViewValue: I.SidebarView = null;
 	public hideSidebarValue = null;
 	public hideFileObjectsInTreeValue = null;
 	public autoDownloadValue = null;
@@ -171,6 +172,7 @@ class CommonStore {
 			widgetSectionsValue: observable,
 			downloadingIdsValue: observable,
 			recentEditModeValue: observable,
+			sidebarViewValue: observable,
 			config: computed,
 			preview: computed,
 			toast: computed,
@@ -192,6 +194,7 @@ class CommonStore {
 			notificationSound: computed,
 			widgetSections: computed,
 			recentEditMode: computed,
+			sidebarView: computed,
 			isPinned: computed,
 			singleTab: computed,
 			autoDownload: computed,
@@ -225,6 +228,7 @@ class CommonStore {
 			widgetSectionsInit: action,
 			widgetSectionsSet: action,
 			recentEditModeSet: action,
+			sidebarViewSet: action,
 			isActiveTabSet: action,
 			isPinnedSet: action,
 			singleTabSet: action,
@@ -312,6 +316,14 @@ class CommonStore {
 			ret = Storage.get('recentEditMode');
 		};
 		return Number(ret) || I.RecentEditMode.All;
+	};
+
+	get sidebarView (): I.SidebarView {
+		let ret = this.sidebarViewValue;
+		if (ret === null) {
+			ret = Storage.getSpaceKey('sidebarView', false);
+		};
+		return ret || I.SidebarView.Widgets;
 	};
 
 	get fullscreenObject (): boolean {
@@ -481,7 +493,14 @@ class CommonStore {
 	};
 
 	get unicodeReplace (): boolean {
-		return this.boolGet('unicodeReplace');
+		let ret = this.unicodeReplaceValue;
+		if (ret === null) {
+			ret = Storage.get('unicodeReplace');
+		};
+		if (ret === undefined) {
+			ret = true;
+		};
+		return ret;
 	};
 
 	get notificationSound (): string {
@@ -1240,14 +1259,19 @@ class CommonStore {
 		Storage.set('recentEditMode', this.recentEditModeValue);
 	};
 
+	sidebarViewSet (v: I.SidebarView) {
+		this.sidebarViewValue = v || I.SidebarView.Widgets;
+		Storage.setSpaceKey('sidebarView', this.sidebarViewValue, false);
+	};
+
 	nullifySpaceKeys () {
 		this.defaultType = null;
+		this.sidebarViewValue = null;
 		this.widgetSectionsInit();
 	};
 
 	widgetSectionsInit () {
 		const reorderable = [ I.WidgetSection.MyFavorites, I.WidgetSection.RecentEdit, I.WidgetSection.Type, I.WidgetSection.Bin ];
-
 		const saved: I.WidgetSectionParam[] = Storage.get('widgetSections') || [];
 		const savedMap = new Map(saved.map(it => [ it.id, it ]));
 

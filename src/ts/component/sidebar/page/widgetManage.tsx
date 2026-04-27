@@ -4,23 +4,29 @@ import { DndContext, closestCenter, useSensors, useSensor, PointerSensor, Keyboa
 import { SortableContext, verticalListSortingStrategy, sortableKeyboardCoordinates, arrayMove, useSortable } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToFirstScrollableAncestor } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
-import { Button, Icon, Widget, Label, Sync } from 'Component';
+import { Button, Icon, Widget, Label, Sync, SpaceName } from 'Component';
 import { I, M, S, U, J, keyboard, analytics, translate, sidebar, Action } from 'Lib';
 
 const SidebarPageWidgetManage = forwardRef<{}, I.SidebarPageComponent>((props, ref) => {
 
-	const { sidebarDirection } = props;
-	const { widgetSections } = S.Common;
+	const { sidebarDirection, getId } = props;
+	const { widgetSections, sidebarView } = S.Common;
 	const { widgets } = S.Block;
 	const spaceview = U.Space.getSpaceview();
 	const canWrite = U.Space.canMyParticipantWrite();
 	const bodyRef = useRef<HTMLDivElement>(null);
 	const [ , setDummy ] = useState(0);
 	const forceUpdate = () => setDummy(v => v + 1);
+	const isLinksView = sidebarView == I.SidebarView.Links;
+	const cnb = [ 'body' ];
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
 		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
 	);
+
+	if (isLinksView) {
+		cnb.push('isLinksView');
+	};
 
 	const onDone = () => {
 		sidebar.leftPanelSubPageOpen('widget', true, true);
@@ -65,6 +71,12 @@ const SidebarPageWidgetManage = forwardRef<{}, I.SidebarPageComponent>((props, r
 		forceUpdate();
 	};
 
+	const onScroll = () => {
+		const top = bodyRef.current?.scrollTop ?? 0;
+
+		U.Dom.toggleClass(U.Dom.get(getId()), 'isScrolled', top > 0);
+	};
+
 	const spaceBlock = new M.Block({
 		id: J.Constant.widgetId.space,
 		type: I.BlockType.Widget,
@@ -73,6 +85,9 @@ const SidebarPageWidgetManage = forwardRef<{}, I.SidebarPageComponent>((props, r
 
 	const sectionOptions = U.Menu.widgetSections();
 	const members = U.Space.getParticipantsList([ I.ParticipantStatus.Active ]);
+	const isOwner = U.Space.isMyOwner();
+	const hasMembers = members.length > 1;
+	const showMembers = !spaceview.isOneToOne && (hasMembers || isOwner);
 
 	const onSync = () => {
 		S.Menu.closeAllForced(null, () => {
@@ -109,13 +124,7 @@ const SidebarPageWidgetManage = forwardRef<{}, I.SidebarPageComponent>((props, r
 				/>
 			</div>
 			<div className="side right">
-				<Icon
-					id="button-widget-search"
-					name="common/search" withBackground={true}
-					onClick={() => keyboard.onSearchPopup(analytics.route.widget)}
-					tooltipParam={{ text: translate('commonSearch'), typeY: I.MenuDirection.Bottom }}
-				/>
-				{spaceview.isShared ? (
+				{showMembers ? (
 					<Icon
 						id="button-widget-members"
 						name="widget/member"
@@ -125,7 +134,6 @@ const SidebarPageWidgetManage = forwardRef<{}, I.SidebarPageComponent>((props, r
 						tooltipParam={{ text: translate('commonMembers'), typeY: I.MenuDirection.Bottom }}
 					/>
 				) : ''}
-				<Sync id="headerSync" onClick={onSync} />
 			</div>
 		</>
 	);
@@ -174,7 +182,7 @@ const SidebarPageWidgetManage = forwardRef<{}, I.SidebarPageComponent>((props, r
 				{head}
 			</div>
 
-			<div id="body" ref={bodyRef} className="body">
+			<div id="body" ref={bodyRef} className={cnb.join(' ')} onScroll={onScroll}>
 				<div className="content">
 					<motion.div {...U.Common.animationProps({ transition: { duration: 0.2 } })}>
 						<Widget
@@ -186,6 +194,8 @@ const SidebarPageWidgetManage = forwardRef<{}, I.SidebarPageComponent>((props, r
 							getObject={id => id ? spaceview : null}
 						/>
 					</motion.div>
+
+					<SpaceName />
 
 					<motion.div
 						className="manageSection"

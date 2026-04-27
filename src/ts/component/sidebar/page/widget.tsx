@@ -1,21 +1,26 @@
 import React, { forwardRef, useRef, useEffect, useState, DragEvent } from 'react';
 import raf from 'raf';
+import { reaction } from 'mobx';
 import { motion, AnimatePresence } from 'motion/react';
-import { Button, Icon, Widget, WidgetHome, IconObject, ObjectName, Sync, Label } from 'Component';
+import { Button, Icon, Widget, WidgetHome, IconObject, ObjectName, Label, SpaceName } from 'Component';
 import { I, C, M, S, U, J, keyboard, analytics, translate, scrollOnMove, Storage, Dataview, sidebar, Action } from 'Lib';
-
+import bullet from 'Component/util/icons/preview/bullet';
 
 const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) => {
 
 	const [ previewId, setPreviewId ] = useState('');
+	const [ , setDummy ] = useState(0);
+	const forceUpdate = () => setDummy(v => v + 1);
 	const { widgets } = S.Block;
 	const childrenIdsWidget = S.Block.getChildrenIds(widgets, widgets);
 	const lengthWidget = childrenIdsWidget.length;
 	const { sidebarDirection, isPopup, getId } = props;
-	const { space, widgetSections, recentEditMode } = S.Common;
+	const { space, widgetSections, recentEditMode, sidebarView } = S.Common;
+	const isLinksView = sidebarView == I.SidebarView.Links;
 	const cnb = [ 'body' ];
 	const spaceview = U.Space.getSpaceview();
 	const canWrite = U.Space.canMyParticipantWrite();
+	const isOwner = U.Space.isMyOwner();
 	const bodyRef = useRef<HTMLDivElement>(null);
 	const dropTargetIdRef = useRef<string>('');
 	const positionRef = useRef<I.BlockPosition>(null);
@@ -23,14 +28,19 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 	const frameRef = useRef<number>(0);
 	const dragEndHandlerRef = useRef<(() => void) | null>(null);
 
+	if (isLinksView) {
+		cnb.push('isLinksView');
+	};
+
 	let content = null;
 	let head = null;
 
 	const getSections = () => {
-		const widgets = getWidgets(I.WidgetSection.Pin);
 		const types = U.Data.getWidgetTypes();
 		const sections = U.Menu.widgetSections();
-		const personal = U.Data.getPersonalWidgets();
+		const pinned = U.Data.getWidgetObjects(widgets, isLinksView);
+		const personal = U.Data.getWidgetObjects(U.Object.getPersonalWidgetsId(), false);
+		const recent = S.Record.getRecords(U.Subscription.getRecentSubId());
 		const { total } = S.Record.getMeta(U.Subscription.spaceSubId(J.Constant.subId.archived), '');
 		const ret = [] as I.WidgetSection[];
 
@@ -41,7 +51,7 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 			};
 		};
 
-		if (widgets.length) {
+		if (pinned.length) {
 			ret.push(I.WidgetSection.Pin);
 		};
 
@@ -49,7 +59,9 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 			ret.push(I.WidgetSection.MyFavorites);
 		};
 
-		ret.push(I.WidgetSection.RecentEdit);
+		if (recent.length) {
+			ret.push(I.WidgetSection.RecentEdit);
+		};
 
 		if (types.length) {
 			ret.push(I.WidgetSection.Type);
@@ -230,12 +242,13 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 	};
 
 	const onScroll = () => {
-		const body = bodyRef.current;
-		const top = body?.scrollTop ?? 0;
+		const top = bodyRef.current?.scrollTop ?? 0;
 
 		if (!previewId) {
 			Storage.setScroll('sidebarWidget', '', top, isPopup);
 		};
+
+		U.Dom.toggleClass(U.Dom.get(getId()), 'isScrolled', top > 0);
 	};
 
 	const onTypeCreate = () => {
@@ -359,6 +372,10 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 	};
 
 	const isSectionClosed = (id: I.WidgetSection) => {
+		if ([ I.WidgetSection.Pin, I.WidgetSection.Bin ].includes(id)) {
+			return false;
+		};
+
 		return widgetSections.find(it => it.id == id)?.isClosed;
 	};
 
@@ -412,17 +429,6 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 		};
 	};
 
-	const onSync = () => {
-		S.Menu.closeAllForced(null, () => {
-			S.Menu.open('syncStatus', {
-				element: '#headerSync',
-				offsetY: 4,
-				classNameWrap: 'fixed fromSidebar',
-				subIds: J.Menu.syncStatus,
-			});
-		});
-	};
-
 	const onSectionContext = (sectionId: I.WidgetSection) => {
 		if (sectionId == I.WidgetSection.Unread) {
 			return;
@@ -461,6 +467,16 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 	};
 
 	const getWidgets = (sectionId: I.WidgetSection) => {
+		if ((sectionId == I.WidgetSection.Pin) && isLinksView) {
+			return [
+				new M.Block({
+					id: [ space, J.Constant.widgetId.pinned ].join('-'),
+					type: I.BlockType.Widget,
+					content: { layout: I.WidgetLayout.Object }
+				}),
+			];
+		};
+
 		let blocks = [];
 
 		switch (sectionId) {
@@ -616,19 +632,22 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 		const sections = getSections();
 		const members = U.Space.getParticipantsList([ I.ParticipantStatus.Active ]);
 		const hasMembers = members.length > 1;
-		const showMembers = !spaceview.isOneToOne && (hasMembers || U.Space.isMyOwner());
+		const showMembers = !spaceview.isOneToOne && (hasMembers || isOwner);
 
 		head = (
 			<>
 				<div className="side left">
 					<Icon
 						id="button-widget-panel-toggle"
-						name="widget/vaultToggle" className="vaultToggle" withBackground={true}
+						name="widget/vaultToggle" 
+						className="vaultToggle" 
+						withBackground={true}
 						onClick={() => sidebar.leftPanelToggle(true, true)}
 						tooltipParam={{ text: translate('commonToggleSidebar'), typeY: I.MenuDirection.Bottom }}
 					/>
 					<Icon
-						name="header/widget" withBackground={true}
+						name="header/widget" 
+						withBackground={true}
 						onClick={() => sidebar.leftPanelSubPageToggle('widget', true, true)}
 						tooltipParam={{
 							text: translate('commonWidgets'),
@@ -638,16 +657,10 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 					/>
 				</div>
 				<div className="side right">
-					<Icon
-						id="button-widget-search"
-						name="common/search" withBackground={true}
-						onClick={() => keyboard.onSearchPopup(analytics.route.widget)}
-						tooltipParam={{ text: translate('commonSearch'), typeY: I.MenuDirection.Bottom }}
-					/>
 					{showMembers ? (
 						<Icon
 							id="button-widget-members"
-							name="widget/member"
+							name={hasMembers ? 'widget/member' : 'header/invite'}
 							withBackground={true}
 							inner={hasMembers ? <Label className="cnt" text={String(members.length)} /> : null}
 							onClick={() => Action.openSpaceShare(analytics.route.widget)}
@@ -657,7 +670,6 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 							}}
 						/>
 					) : ''}
-					<Sync id="headerSync" onClick={onSync} />
 				</div>
 			</>
 		);
@@ -666,19 +678,23 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 
 		content = (
 			<div className="content">
-				<Widget
-					block={spaceBlock}
-					disableContextMenu={true}
-					onDragStart={onDragStart}
-					onDragOver={onDragOver}
-					onDrag={onDrag}
-					canEdit={false}
-					canRemove={false}
-					sidebarDirection={sidebarDirection}
-					getObject={id => getObject(spaceBlock, id)}
-				/>
+				{spaceview.isOneToOne ? (
+					<Widget
+						block={spaceBlock}
+						disableContextMenu={true}
+						onDragStart={onDragStart}
+						onDragOver={onDragOver}
+						onDrag={onDrag}
+						canEdit={false}
+						canRemove={false}
+						sidebarDirection={sidebarDirection}
+						getObject={id => getObject(spaceBlock, id)}
+					/>
+				) : ''}
 
-				<WidgetHome />
+				<SpaceName />
+
+				{!isLinksView ? <WidgetHome /> : ''}
 
 				{sections.map((section, i) => {
 					const isSectionPin = section.id == I.WidgetSection.Pin;
@@ -692,6 +708,8 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 					if (ws.isHidden) {
 						return null;
 					};
+
+					const isClosed = isSectionClosed(section.id);
 
 					let buttons = null;
 					if (isSectionType) {
@@ -713,7 +731,7 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 									transition: { duration: 0.2, delay: i * 0.05 },
 								})}
 							>
-								{!isSectionPin ? (
+								{!isSectionPin && !isSectionBin ? (
 									<div
 										className="nameWrap"
 										onContextMenu={() => onSectionContext(section.id)}
@@ -728,7 +746,7 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 									</div>
 								) : ''}
 
-								{!ws?.isClosed ? (
+								{!isClosed ? (
 									<div 
 										className="items" 
 										onContextMenu={e => {
@@ -773,6 +791,8 @@ const SidebarPageWidget = forwardRef<{}, I.SidebarPageComponent>((props, ref) =>
 		setPreviewId('');
 		initSections();
 	}, [ space ]);
+
+	useEffect(() => reaction(() => S.Common.sidebarView, () => forceUpdate()), []);
 
 	return (
 		<>

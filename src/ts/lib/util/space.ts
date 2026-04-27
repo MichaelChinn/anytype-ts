@@ -194,7 +194,7 @@ class UtilSpace {
 
 		};
 
-		if (!ret || ret._empty_ || ret.isDeleted) {
+		if (!ret || ret._empty_ || ret.isArchived || ret.isDeleted) {
 			return null;
 		};
 		return ret;
@@ -206,6 +206,10 @@ class UtilSpace {
 	 */
 	getSystemDashboardIds (): string[] {
 		return [ I.HomePredefinedId.Graph, I.HomePredefinedId.Chat, I.HomePredefinedId.Last, I.HomePredefinedId.Widget ];
+	};
+
+	isSystemDashboard (id: string): boolean {
+		return this.getSystemDashboardIds().includes(id);
 	};
 
 	/**
@@ -456,6 +460,19 @@ class UtilSpace {
 
 		const participants = this.getParticipantsList([ I.ParticipantStatus.Active ]).filter(it => it.isWriter || it.isOwner);
 		return space.writersLimit - participants.length;
+	};
+
+	/**
+	 * Gets writer/reader slots available to invitees from the current membership tier.
+	 * writersLimit subtracts 1 because the owner occupies one writer seat in the middleware's count.
+	 * @returns {{ writersLimit: number, readersLimit: number }} Tier-level slots for new members.
+	 */
+	getTierLimits () {
+		const product = S.Membership.data?.getTopProduct();
+		return {
+			writersLimit: Math.max(0, (product?.features?.spaceWriters || 0) - 1),
+			readersLimit: product?.features?.spaceReaders || 0,
+		};
 	};
 
 	/**
