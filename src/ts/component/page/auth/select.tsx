@@ -39,8 +39,19 @@ const PageAuthSelect = forwardRef<I.PageRef, I.PageComponent>((props, ref) => {
 			Storage.setOnboarding('typeResetLayout');
 			Storage.setSpaceKey('sidebarView', I.SidebarView.Links, false, account.info.accountSpaceId);
 
+			// Anytype-fork: skip the onboarding flow (recovery-key, email,
+			// persona, use-case screens) and route directly into the user's
+			// space. Mirrors the `onAuth` step in `onboard.tsx`. The recovery
+			// key is still accessible from Settings → Account if needed.
 			U.Subscription.createGlobal(() => {
-				inflate(() => U.Router.go('/auth/onboard', {}));
+				inflate(() => {
+					U.Router.switchSpace(S.Common.space, '', false, {
+						onRouteChange: () => {
+							Onboarding.startCommon(props.isPopup);
+							analytics.event('OpenAccount');
+						},
+					}, false);
+				});
 			});
 		};
 
