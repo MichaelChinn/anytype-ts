@@ -24,7 +24,13 @@ const SidebarPageSettingsIndex = forwardRef<{}, I.SidebarPageComponent>((props, 
 	const isSpace = page == 'settingsSpace';
 	const spaceview = U.Space.getSpaceview();
 	const canWrite = U.Space.canMyParticipantWrite();
-	const withMembership = isOnline && U.Data.isAnytypeNetwork();
+	// Anytype-fork: membership is gated behind the compile-time
+	// __FEATURE_MEMBERSHIP__ flag so the menu item disappears entirely in
+	// the fork build (where MEMBERSHIP=false). The runtime
+	// (isOnline + isAnytypeNetwork) check is kept for the upstream-compatible
+	// path so flipping the flag back to true doesn't show the entry on a
+	// peer-only deployment.
+	const withMembership = __FEATURE_MEMBERSHIP__ && isOnline && U.Data.isAnytypeNetwork();
 	const listRef = useRef(null);
 	const cache = useRef(new CellMeasurerCache({ fixedHeight: true, defaultHeight: HEIGHT_ITEM }));
 

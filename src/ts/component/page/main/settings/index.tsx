@@ -50,7 +50,9 @@ const Components: any = {
 	delete:				 PageDelete,
 	personal:			 PagePersonal,
 	phrase:				 PagePhrase,
-	membership:			 PageMembership,
+	// Anytype-fork: gated by __FEATURE_MEMBERSHIP__ so the page is unreachable
+	// when the flag is off; full dead-code elim of the import is a follow-up.
+	...(__FEATURE_MEMBERSHIP__ ? { membership: PageMembership } : {}),
 	language:			 PageLanguage,
 	api:				 PageApi,
 
