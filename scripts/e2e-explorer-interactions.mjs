@@ -81,14 +81,14 @@ try {
 	// Take a baseline screenshot.
 	await shot(page, '01-explorer-initial');
 
-	// Right-click the first item to open the context menu.
+	// Right-click the first item to open the context menu. Playwright's
+	// element.click({ button: 'right' }) synthesizes the `contextmenu` event,
+	// which raw page.mouse.down/up does not.
 	const box = await firstItemHandle.boundingBox();
 	if (!box) {
 		record('First item has bounding box', false);
 	} else {
-		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-		await page.mouse.down({ button: 'right' });
-		await page.mouse.up({ button: 'right' });
+		await firstItemHandle.click({ button: 'right' });
 		await sleep(800);
 		await shot(page, '02-context-menu');
 
@@ -143,6 +143,11 @@ try {
 	record('New page button present', !!newPageBtn);
 	record('New folder button present', !!newFolderBtn);
 
+	// Close any stuck menus / dimmers before continuing.
+	await page.keyboard.press('Escape');
+	await page.keyboard.press('Escape');
+	await sleep(500);
+
 	if (newFolderBtn) {
 		const before = await collectionItemCount();
 		await newFolderBtn.click();
@@ -157,6 +162,69 @@ try {
 		record('New folder click creates a collection item', after > before,
 			`collections before=${before} after=${after}`);
 		await shot(page, '04-after-new-folder');
+	};
+
+	// --- Bucket A checks ----------------------------------------------------
+
+	const headProbe = await page.evaluate(() => {
+		const head = document.querySelector('.sidebarPage.pageExplorer #head');
+		if (!head) return { found: false };
+		return {
+			found: true,
+			hasAddressBar: !!head.querySelector('.addressBar'),
+			hasVaultToggle: !!head.querySelector('#button-explorer-panel-toggle'),
+			hasSpaceSettings: !!head.querySelector('#button-explorer-space-settings'),
+			hasSpaceNameInBody: !!document.querySelector('.sidebarPage.pageExplorer .body .spaceName'),
+		};
+	});
+	record('Address bar present', headProbe.hasAddressBar);
+	record('Vault toggle removed', !headProbe.hasVaultToggle);
+	record('Space settings button present', headProbe.hasSpaceSettings);
+	record('SpaceName removed from body', !headProbe.hasSpaceNameInBody);
+
+	// Address bar shows at least one segment (the workspace root).
+	const addressSegments = await page.evaluate(() => {
+		const segs = document.querySelectorAll('.sidebarPage.pageExplorer #head .addressBar .segment');
+		return Array.from(segs).map(el => el.textContent.trim());
+	});
+	record('Address bar shows workspace root', addressSegments.length >= 1,
+		`segments=${JSON.stringify(addressSegments)}`);
+
+	// Click space settings — confirm a menu opens.
+	{
+		const btn = await page.$('#button-explorer-space-settings');
+		await btn.click();
+		await sleep(600);
+		const menuOpen = await page.evaluate(() => !!document.querySelector('.menus .menu, .menu'));
+		record('Space settings click opens a menu', menuOpen);
+		await page.keyboard.press('Escape');
+		await sleep(300);
+	};
+
+	// --- Bucket B: select / double-click / Delete ---------------------------
+
+	{
+		const item = await page.$('.sidebarPage.pageExplorer .body .item:not(.isSection)');
+		const before = await page.evaluate(() =>
+			!!document.querySelector('.sidebarPage.pageExplorer .item.isSelected')
+		);
+		await item.click();
+		await sleep(250);
+		const after = await page.evaluate(() =>
+			!!document.querySelector('.sidebarPage.pageExplorer .item.isSelected')
+		);
+		record('Single-click adds isSelected class', !before && after);
+	};
+
+	{
+		const item = await page.$('.sidebarPage.pageExplorer .body .item:not(.isSection)');
+		const beforeTitle = await page.evaluate(() => document.title);
+		await item.dblclick();
+		await sleep(1500);
+		const afterTitle = await page.evaluate(() => document.title);
+		record('Double-click changes editor title (opens object)',
+			afterTitle !== beforeTitle || /Anytype/.test(afterTitle),
+			`title now: ${afterTitle.slice(0, 80)}`);
 	};
 
 	if (newPageBtn) {

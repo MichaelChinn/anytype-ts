@@ -1,6 +1,6 @@
-import React, { forwardRef, useImperativeHandle, useEffect, useRef, useState, MouseEvent, DragEvent } from 'react';
+import React, { forwardRef, useImperativeHandle, useEffect, useRef, useState, MouseEvent, DragEvent, KeyboardEvent } from 'react';
 import { AutoSizer, CellMeasurer, CellMeasurerCache, List } from 'react-virtualized';
-import { Filter, Icon, Label, SpaceName } from 'Component';
+import { Filter, Icon, Label } from 'Component';
 import * as I from 'Interface';
 import Storage from 'Lib/storage';
 import ExplorerItem from './explorer/item';
@@ -34,6 +34,8 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 	const top = useRef(0);
 	const cache = useRef(new CellMeasurerCache({ fixedHeight: true, defaultHeight: HEIGHT_ITEM }));
 	const [ searchIds, setSearchIds ] = useState<string[]>([]);
+	const [ selectedId, setSelectedId ] = useState<string>('');
+	const [ renamingId, setRenamingId ] = useState<string>('');
 	const [ , setDummy ] = useState(0);
 	const forceUpdate = () => setDummy(v => v + 1);
 
@@ -203,6 +205,7 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 		forceUpdate();
 	};
 
+	// Single-click selects (Windows-Explorer style); double-click opens.
 	const onClick = (e: MouseEvent, item: any): void => {
 		if (U.Common.checkAuxButton(e)) {
 			return;
@@ -211,8 +214,147 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 		e.preventDefault();
 		e.stopPropagation();
 
+		if (item?.id) {
+			setSelectedId(item.id);
+		};
+	};
+
+	const onDoubleClick = (e: MouseEvent, item: any): void => {
+		if (!item) {
+			return;
+		};
+		e.preventDefault();
+		e.stopPropagation();
+
 		U.Object.openConfig(e, item);
 		analytics.event('OpenSidebarObject');
+	};
+
+	// Address bar: workspace root + selected node's ancestor chain. Built
+	// from the same byId map buildTree uses; computed lazily so it doesn't
+	// add a render dependency.
+	const computeAddressSegments = (): { id: string; name: string; isRoot?: boolean }[] => {
+		const spaceview = U.Space.getSpaceview();
+		const rootName = (spaceview ? spaceview.name : '') || translate('commonWorkspace');
+		const segments: { id: string; name: string; isRoot?: boolean }[] = [
+			{ id: '', name: rootName, isRoot: true },
+		];
+		if (!selectedId) {
+			return segments;
+		};
+
+		const records = getRecords().filter(isVisibleLayout);
+		const byId = new Map<string, any>(records.map(r => [ r.id, r ]));
+
+		// Walk parents: a node is a "child" of any collection whose `links`
+		// includes its id. Build a child->parent map first.
+		const parentById = new Map<string, string>();
+		for (const r of records) {
+			if (!isCollection(r)) {
+				continue;
+			};
+			for (const cid of getChildIds(r)) {
+				if (byId.has(cid) && !parentById.has(cid)) {
+					parentById.set(cid, r.id);
+				};
+			};
+		};
+
+		const chain: string[] = [];
+		let cursor = selectedId;
+		const seen = new Set<string>();
+		while (cursor && !seen.has(cursor)) {
+			seen.add(cursor);
+			chain.unshift(cursor);
+			cursor = parentById.get(cursor) || '';
+		};
+		for (const id of chain) {
+			const o = byId.get(id);
+			if (o) {
+				segments.push({ id, name: String(o.name || translate('defaultNamePage')) });
+			};
+		};
+		return segments;
+	};
+
+	const onAddressSegment = (id: string): void => {
+		if (!id) {
+			setSelectedId('');
+			return;
+		};
+		setSelectedId(id);
+	};
+
+	const onSpaceSettings = (e: MouseEvent): void => {
+		e.preventDefault();
+		e.stopPropagation();
+
+		const spaceview = U.Space.getSpaceview();
+		if (!spaceview) {
+			return;
+		};
+
+		U.Menu.spaceContext(spaceview, {
+			element: '#button-explorer-space-settings',
+			horizontal: I.MenuDirection.Right,
+			offsetY: 4,
+			className: 'fixed',
+			classNameWrap: 'fromSidebar',
+		}, {
+			route: 'SidebarExplorer',
+			withDelete: true,
+		});
+	};
+
+	// Inline rename: F2 / Enter on selection enters rename mode; the item
+	// renders an input that commits on Enter or blur, cancels on Escape.
+	const enterRenameMode = (id: string): void => {
+		if (!id || !U.Space.canMyParticipantWrite()) {
+			return;
+		};
+		setRenamingId(id);
+	};
+
+	const onCommitRename = (id: string, newName: string): void => {
+		const trimmed = (newName || '').trim();
+		if (trimmed) {
+			U.Object.setName(id, trimmed);
+			analytics.event('SidebarExplorerRename');
+		};
+		setRenamingId('');
+	};
+
+	const onCancelRename = (): void => {
+		setRenamingId('');
+	};
+
+	const onContainerKeyDown = (e: KeyboardEvent<HTMLDivElement>): void => {
+		if (renamingId) {
+			// While renaming, the item's input owns Escape/Enter handling.
+			return;
+		};
+		if (!selectedId) {
+			return;
+		};
+		// Ignore typing into the filter box (which lives outside this scope
+		// but bubbles).
+		const target = e.target as HTMLElement;
+		if ((target?.tagName || '').toLowerCase() === 'input') {
+			return;
+		};
+
+		if ((e.key === 'F2') || (e.key === 'Enter')) {
+			e.preventDefault();
+			enterRenameMode(selectedId);
+			return;
+		};
+		if ((e.key === 'Delete') && U.Space.canMyParticipantWrite()) {
+			e.preventDefault();
+			C.ObjectListSetIsArchived([ selectedId ], true);
+			setSelectedId('');
+			analytics.event('SidebarExplorerMoveToBin');
+			return;
+		};
 	};
 
 	// --- Drag-drop -----------------------------------------------------------
@@ -613,7 +755,10 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 					treeKey={treeKey}
 					index={index}
 					style={style}
+					isSelected={node.id === selectedId}
+					isRenaming={node.id === renamingId}
 					onClick={onClick}
+					onDoubleClick={onDoubleClick}
 					onToggle={onToggle}
 					getSubId={getSubId}
 					getSubKey={getSubKey}
@@ -622,6 +767,8 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 					onItemDragLeave={onItemDragLeave}
 					onItemDrop={onItemDrop}
 					onItemContextMenu={onItemContextMenu}
+					onCommitRename={onCommitRename}
+					onCancelRename={onCancelRename}
 				/>
 			</CellMeasurer>
 		);
@@ -667,20 +814,33 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 		);
 	};
 
+	const segments = computeAddressSegments();
+
 	return (
 		<>
 			<div id="head" className="head isDefault">
-				<div className="side left">
-					<Icon
-						id="button-explorer-panel-toggle"
-						name="widget/vaultToggle"
-						className="vaultToggle"
-						withBackground={true}
-						onClick={() => sidebar.leftPanelToggle(true, true)}
-						tooltipParam={{ text: translate('commonToggleSidebar'), typeY: I.MenuDirection.Bottom }}
-					/>
+				<div className="side left addressBar" title={segments.map(s => s.name).join(' / ')}>
+					{segments.map((seg, i) => (
+						<React.Fragment key={`${seg.id || 'root'}-${i}`}>
+							{(i > 0) ? <span className="separator">/</span> : null}
+							<span
+								className={[ 'segment', (seg.isRoot ? 'root' : ''), ((i === segments.length - 1) ? 'current' : '') ].join(' ')}
+								onClick={() => onAddressSegment(seg.id)}
+							>
+								{seg.name}
+							</span>
+						</React.Fragment>
+					))}
 				</div>
 				<div className="side right">
+					<Icon
+						id="button-explorer-space-settings"
+						name="header/settings"
+						className="spaceSettings"
+						withBackground={true}
+						onClick={onSpaceSettings}
+						tooltipParam={{ text: translate('sidebarExplorerSpaceSettings'), typeY: I.MenuDirection.Bottom }}
+					/>
 					<Icon
 						id="button-explorer-new-folder"
 						name="plus/newFolder"
@@ -704,10 +864,11 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 				id="body"
 				ref={nodeRef}
 				className="body"
+				tabIndex={0}
 				onDragOver={onRootDragOver}
 				onDrop={onRootDrop}
+				onKeyDown={onContainerKeyDown}
 			>
-				<SpaceName />
 				<Filter
 					ref={filterRef}
 					iconParam={{ name: 'common/search' }}

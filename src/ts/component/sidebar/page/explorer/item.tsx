@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, MouseEvent, DragEvent } from 'react';
+import React, { forwardRef, useRef, useState, useEffect, MouseEvent, DragEvent, KeyboardEvent } from 'react';
 import { Icon, IconObject, ObjectName, Label } from 'Component';
 import Storage from 'Lib/storage';
 
@@ -9,10 +9,13 @@ interface ExplorerItemProps {
 	numChildren: number;
 	branch: string;
 	isSection?: boolean;
+	isSelected?: boolean;
+	isRenaming?: boolean;
 	treeKey: string;
 	index: number;
 	style?: any;
 	onClick(e: MouseEvent, object: any): void;
+	onDoubleClick?(e: MouseEvent, object: any): void;
 	onToggle(e: MouseEvent, props: ExplorerItemProps): void;
 	getSubId(): string;
 	getSubKey(): string;
@@ -21,16 +24,20 @@ interface ExplorerItemProps {
 	onItemDragLeave?(e: DragEvent): void;
 	onItemDrop?(e: DragEvent, props: ExplorerItemProps, object: any): void;
 	onItemContextMenu?(e: MouseEvent, props: ExplorerItemProps, object: any): void;
+	onCommitRename?(id: string, newName: string): void;
+	onCancelRename?(): void;
 };
 
 const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) => {
 
 	const {
-		id, depth, numChildren, isSection, treeKey, style,
-		onClick, onToggle, getSubId, getSubKey,
+		id, depth, numChildren, isSection, isSelected, isRenaming, treeKey, style,
+		onClick, onDoubleClick, onToggle, getSubId, getSubKey,
 		onItemDragStart, onItemDragOver, onItemDragLeave, onItemDrop, onItemContextMenu,
+		onCommitRename, onCancelRename,
 	} = props;
 	const nodeRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 	const subId = getSubId();
 	const subKey = getSubKey();
 	const isOpen = Storage.checkToggle(subKey, treeKey);
@@ -39,6 +46,18 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 	const isCollection = object && U.Object.isCollectionLayout(layout);
 	const paddingLeft = (depth > 1) ? ((depth - 1) * 12) : 4;
 	const canDrag = !!object && !!onItemDragStart && U.Space.canMyParticipantWrite();
+	const [ renameValue, setRenameValue ] = useState<string>('');
+
+	useEffect(() => {
+		if (isRenaming) {
+			setRenameValue(String(object?.name || ''));
+			// Defer focus by a tick so the input is in the DOM.
+			window.setTimeout(() => {
+				inputRef.current?.focus();
+				inputRef.current?.select();
+			}, 0);
+		};
+	}, [ isRenaming ]);
 
 	const cn = [ 'item', `depth${depth}` ];
 	if (isOpen) {
@@ -49,6 +68,12 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 	};
 	if (object && (object.isHidden || object.isReadonly)) {
 		cn.push('isMuted');
+	};
+	if (isSelected) {
+		cn.push('isSelected');
+	};
+	if (isRenaming) {
+		cn.push('isRenaming');
 	};
 
 	const onToggleHandler = (e: MouseEvent) => {
@@ -110,13 +135,51 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 		onItemContextMenu?.(e, props, object);
 	};
 
+	const onClickWrap = (e: MouseEvent) => {
+		onClick(e, object);
+	};
+	const onDoubleClickWrap = (e: MouseEvent) => {
+		onDoubleClick?.(e, object);
+	};
+
+	const onRenameKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		e.stopPropagation();
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			onCommitRename?.(id, renameValue);
+		} else
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			onCancelRename?.();
+		};
+	};
+
+	const renderName = () => {
+		if (isRenaming) {
+			return (
+				<input
+					ref={inputRef}
+					className="renameInput"
+					type="text"
+					value={renameValue}
+					onChange={e => setRenameValue(e.target.value)}
+					onKeyDown={onRenameKeyDown}
+					onBlur={() => onCommitRename?.(id, renameValue)}
+					onClick={e => e.stopPropagation()}
+					onDoubleClick={e => e.stopPropagation()}
+				/>
+			);
+		};
+		return <ObjectName object={object} withPlural={true} />;
+	};
+
 	return (
 		<div
 			ref={nodeRef}
 			id={treeKey}
 			className={cn.join(' ')}
 			style={style}
-			draggable={canDrag}
+			draggable={canDrag && !isRenaming}
 			onDragStart={onDragStart}
 			onDragOver={onDragOver}
 			onDragLeave={onDragLeave}
@@ -124,7 +187,11 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 			onContextMenu={onContextMenu}
 		>
 			<div className="inner" style={{ paddingLeft }}>
-				<div className="clickable" onMouseDown={e => onClick(e, object)}>
+				<div
+					className="clickable"
+					onMouseDown={onClickWrap}
+					onDoubleClick={onDoubleClickWrap}
+				>
 					{arrow}
 					<IconObject
 						id={`explorer-icon-${treeKey}`}
@@ -132,7 +199,7 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 						size={20}
 						iconSize={20}
 					/>
-					<ObjectName object={object} withPlural={true} />
+					{renderName()}
 				</div>
 			</div>
 		</div>
