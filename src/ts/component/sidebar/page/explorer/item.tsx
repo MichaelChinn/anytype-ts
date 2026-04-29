@@ -38,6 +38,7 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 	} = props;
 	const nodeRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
+	const cancelledRef = useRef(false);
 	const subId = getSubId();
 	const subKey = getSubKey();
 	const isOpen = Storage.checkToggle(subKey, treeKey);
@@ -50,6 +51,7 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 
 	useEffect(() => {
 		if (isRenaming) {
+			cancelledRef.current = false;
 			setRenameValue(String(object?.name || ''));
 			// Defer focus by a tick so the input is in the DOM.
 			window.setTimeout(() => {
@@ -150,8 +152,19 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 		} else
 		if (e.key === 'Escape') {
 			e.preventDefault();
+			cancelledRef.current = true;
 			onCancelRename?.();
 		};
+	};
+
+	const onRenameBlur = () => {
+		// Escape sets cancelledRef and calls onCancelRename, which un-mounts
+		// this input — the synthetic blur fires after that and would otherwise
+		// commit the un-edited value over what the user just discarded.
+		if (cancelledRef.current) {
+			return;
+		};
+		onCommitRename?.(id, renameValue);
 	};
 
 	const renderName = () => {
@@ -164,7 +177,7 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 					value={renameValue}
 					onChange={e => setRenameValue(e.target.value)}
 					onKeyDown={onRenameKeyDown}
-					onBlur={() => onCommitRename?.(id, renameValue)}
+					onBlur={onRenameBlur}
 					onClick={e => e.stopPropagation()}
 					onDoubleClick={e => e.stopPropagation()}
 				/>

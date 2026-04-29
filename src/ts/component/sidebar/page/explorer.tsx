@@ -31,6 +31,7 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 	const filterValue = useRef('');
 	const filterTimeout = useRef(0);
 	const branches = useRef<Set<string>>(new Set());
+	const lastNodesRef = useRef<ExplorerNode[]>([]);
 	const top = useRef(0);
 	const cache = useRef(new CellMeasurerCache({ fixedHeight: true, defaultHeight: HEIGHT_ITEM }));
 	const [ searchIds, setSearchIds ] = useState<string[]>([]);
@@ -280,9 +281,19 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 	const onAddressSegment = (id: string): void => {
 		if (!id) {
 			setSelectedId('');
+			listRef.current?.scrollToPosition(0);
 			return;
 		};
 		setSelectedId(id);
+		// Scroll the virtualized list to the row for this id (if rendered).
+		// nodes is computed at render time; reach through closure via the
+		// most recent buildTree result on the next animation frame.
+		window.requestAnimationFrame(() => {
+			const idx = lastNodesRef.current.findIndex(n => n.id === id);
+			if (idx >= 0) {
+				listRef.current?.scrollToRow(idx);
+			};
+		});
 	};
 
 	const onSpaceSettings = (e: MouseEvent): void => {
@@ -735,6 +746,7 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 	}));
 
 	const nodes = buildTree();
+	lastNodesRef.current = nodes;
 	const length = nodes.length;
 
 	const rowRenderer = ({ index, parent, style, key }) => {
