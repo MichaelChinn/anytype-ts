@@ -5,6 +5,8 @@ import { Icon, DropTarget, EditorControls, CommentSection } from 'Component';
 import PageHeadEditor from 'Component/page/elements/head/editor';
 import Children from 'Component/page/elements/children';
 import TableOfContents from 'Component/page/elements/tableOfContents';
+import CustomRendererHost from 'Component/renderer/host';
+import { Features } from 'Store/features';
 import * as I from 'Interface';
 import Storage from 'Lib/storage';
 import { focus } from 'Lib/focus';
@@ -25,7 +27,9 @@ const EditorPage = forwardRef<I.BlockRef, Props>((props, ref) => {
 	const headerRef = useRef(null);
 	const controlsRef = useRef(null);
 	const idRef = useRef('');
+	const isCustomRenderingRef = useRef(false);
 	const [ isDeleted, setIsDeleted ] = useState(false);
+	const [ isEditing, setIsEditing ] = useState(false);
 	const [ dummy, setDummy ] = useState(0);
 	const moveDir = useRef(0);
 	const timeoutMove = useRef(0);
@@ -2770,30 +2774,45 @@ const EditorPage = forwardRef<I.BlockRef, Props>((props, ref) => {
 	const object = S.Detail.get(rootId, rootId, [ 'type' ], true);
 	const isTemplate = U.Object.isTemplateType(object.type);
 
-	return (
-		<div 
-			ref={nodeRef} 
+	// Anytype-fork: when the object's type has a custom renderer config and
+	// the user isn't in "edit" mode, render via CustomRendererHost instead
+	// of the block tree. The flag-gated check + isEditing toggle (Step D)
+	// keeps the behaviour opt-in until the rest of the renderer pipeline
+	// stabilises.
+	const typeUniqueKey = U.Object.getTypeUniqueKey(object);
+	const typeKey = U.Object.unKey(typeUniqueKey);
+	const showCustom = (
+		Features.values.experimentalRenderers &&
+		!!typeKey &&
+		!isCustomTypeBundled(typeKey) &&
+		!isEditing
+	);
+	isCustomRenderingRef.current = showCustom;
+
+	const blockTree = (
+		<div
+			ref={nodeRef}
 			id="editorWrapper"
 			className="editorWrapper"
 		>
-			<EditorControls 
-				ref={controlsRef} 
-				key="editorControls" 
-				{...props} 
-				resize={resizePage} 
+			<EditorControls
+				ref={controlsRef}
+				key="editorControls"
+				{...props}
+				resize={resizePage}
 				readonly={readonly}
-				onLayoutSelect={focusInit} 
+				onLayoutSelect={focusInit}
 			/>
-			
+
 			<div id={`editor-${rootId}`} className="editor">
 				<div className="blocks">
-					<Icon id="button-block-add" name="plus/blockAdd" className="buttonAdd" size={19} onClick={onAdd} />
+					{!showCustom ? <Icon id="button-block-add" name="plus/blockAdd" className="buttonAdd" size={19} onClick={onAdd} /> : null}
 
-					<PageHeadEditor 
-						{...props} 
+					<PageHeadEditor
+						{...props}
 						ref={headerRef}
 						onKeyDown={onKeyDownBlock}
-						onKeyUp={onKeyUpBlock}  
+						onKeyUp={onKeyUpBlock}
 						onMenuAdd={onMenuAdd}
 						onPaste={onPasteEvent}
 						setLayoutWidth={setLayoutWidth}
@@ -2801,10 +2820,10 @@ const EditorPage = forwardRef<I.BlockRef, Props>((props, ref) => {
 						getWrapperWidth={getWrapperWidth}
 					/>
 
-					<Children 
+					<Children
 						{...props}
 						onKeyDown={onKeyDownBlock}
-						onKeyUp={onKeyUpBlock}  
+						onKeyUp={onKeyUpBlock}
 						onMenuAdd={onMenuAdd}
 						onCopy={onCopy}
 						onPaste={onPasteEvent}
@@ -2834,7 +2853,67 @@ const EditorPage = forwardRef<I.BlockRef, Props>((props, ref) => {
 			</div>
 		</div>
 	);
-	
+
+	const isCustomTyped = !!typeKey && !isCustomTypeBundled(typeKey);
+	const renderWithToggle = (content: React.ReactNode) => (
+		<>
+			{isCustomTyped && Features.values.experimentalRenderers ? (
+				<div
+					className="editorViewToggle"
+					style={{
+						position: 'absolute',
+						top: 8,
+						right: 12,
+						zIndex: 30,
+					}}
+				>
+					<button
+						type="button"
+						className="viewToggleBtn"
+						onClick={() => setIsEditing(v => !v)}
+						style={{
+							padding: '4px 10px',
+							fontSize: 12,
+							lineHeight: '16px',
+							color: 'var(--color-text-primary)',
+							background: 'var(--color-bg-primary)',
+							border: '1px solid var(--color-shape-secondary)',
+							borderRadius: 6,
+						}}
+					>
+						{isEditing
+							? translate('editorViewCustom')
+							: translate('editorEditBlocks')}
+					</button>
+				</div>
+			) : null}
+			{content}
+		</>
+	);
+
+	if (!showCustom) {
+		return renderWithToggle(blockTree);
+	};
+	return renderWithToggle(
+		<CustomRendererHost object={object} typeKey={typeKey} fallback={blockTree} />,
+	);
+
 });
+
+// Mirror of anytype-sync-fs/type_cache.go's isBundledTypeKey — types whose
+// unique key is in this set use the block-based renderer regardless of any
+// .anytype/renderers/<key>.json file.
+const BUNDLED_TYPE_KEYS = new Set<string>([
+	'page', 'note', 'task', 'profile', 'contact', 'bookmark',
+	'set', 'collection', 'file', 'image', 'audio', 'video', 'pdf',
+	'date', 'objectType', 'relation', 'relationOption', 'relationOptionsList',
+	'template', 'chatDeprecated', 'chatDerived', 'dashboard', 'space',
+	'spaceView', 'participant', 'tag', 'notification', 'missingObject',
+	'devices', 'discussion',
+]);
+
+function isCustomTypeBundled (key: string): boolean {
+	return BUNDLED_TYPE_KEYS.has(key);
+};
 
 export default EditorPage;

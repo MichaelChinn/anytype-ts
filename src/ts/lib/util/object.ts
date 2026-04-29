@@ -403,6 +403,33 @@ class UtilObject {
 		C.ObjectListSetDetails([ rootId ], [ { key: 'name', value: String(name || '') } ], callBack);
 	};
 
+	/**
+	 * Returns the uniqueKey of an object's type (e.g. "ot-page", "ot-book").
+	 * The object's `type` field is the type *object's id*, not the unique
+	 * key — so we look up the type via S.Detail to get its uniqueKey.
+	 *
+	 * Used by the editor to decide whether a custom renderer applies (any
+	 * non-bundled key) and which `.anytype/renderers/<key>.json` to load.
+	 */
+	getTypeUniqueKey (object: any): string {
+		if (!object || !object.type) {
+			return '';
+		};
+		const type = S.Detail.get(S.Common.space, object.type, [ 'uniqueKey' ], true);
+		return type?.uniqueKey || '';
+	};
+
+	/**
+	 * Strips the "ot-" prefix from a type's uniqueKey.
+	 * unKey("ot-book") === "book"
+	 * unKey("book")    === "book"
+	 * unKey("")        === ""
+	 */
+	unKey (uniqueKey: string): string {
+		const s = String(uniqueKey || '');
+		return s.startsWith('ot-') ? s.slice(3) : s;
+	};
+
 	setDescription (rootId: string, description: string, callBack?: (message: any) => void) {
 		C.ObjectListSetDetails([ rootId ], [ { key: 'description', value: String(description || '') } ], callBack);
 	};
