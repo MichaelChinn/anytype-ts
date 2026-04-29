@@ -1090,3 +1090,49 @@
 .pageMainSettingsMembership {
     .settingsPageContainer { flex: 1 1 0; }
 }
+
+/* Anytype-fork: Fork Settings (Root Directory, Exclude List) */
+.pageSettingsForkRoot,
+.pageSettingsForkExclude {
+	.forkSpaceContext { display: block; margin-bottom: 16px; color: var(--color-text-secondary); font-size: 13px; }
+
+	.forkSettingsBlock { padding: 16px 0px; border-bottom: 1px solid var(--color-shape-secondary); }
+	.forkSettingsBlock {
+		.rowLabel { display: block; margin-bottom: 4px; font-weight: 600; }
+		.rowHint { display: block; margin-bottom: 8px; color: var(--color-text-secondary); font-size: 13px; }
+		.rowControls { display: flex; align-items: center; gap: 12px; }
+		.rowControls {
+			.pathDisplay {
+				flex: 1 1 auto; min-width: 0; padding: 8px 12px;
+				border: 1px solid var(--color-shape-secondary); border-radius: 4px;
+				background-color: var(--color-shape-tertiary); font-family: monospace;
+				white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+			}
+			.rowButtons { display: flex; gap: 8px; flex-shrink: 0; }
+		}
+		.input { width: 100%; }
+	}
+
+	.forkSettingsActions { display: flex; align-items: center; gap: 12px; padding: 16px 0px; }
+	.forkSettingsActions {
+		.forkError { color: var(--color-red); font-size: 13px; }
+	}
+
+	.forkExcludeList { display: flex; flex-direction: column; gap: 4px; }
+	.forkExcludeList {
+		.row {
+			display: flex; align-items: center; gap: 8px;
+			padding: 8px 12px;
+			border: 1px solid var(--color-shape-secondary); border-radius: 4px;
+		}
+		.row {
+			.path {
+				flex: 1 1 auto; min-width: 0; font-family: monospace; font-size: 13px;
+				white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+			}
+			.icon.remove { flex-shrink: 0; cursor: pointer; }
+		}
+	}
+
+	.forkExcludeEmpty { padding: 24px; text-align: center; color: var(--color-text-secondary); }
+}

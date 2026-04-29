@@ -83,6 +83,10 @@ export interface AppConfig {
 	debug?: Record<string, boolean>;
 	flagsMw?: Record<string, boolean>;
 	languages?: string[];
+	// Anytype-fork: filesystem sync settings (per-space)
+	workspaces?: { [spaceId: string]: { path?: string; excludes?: string[] } };
+	activeSpaceId?: string;
+	syncToken?: string;
 	[key: string]: any;
 };
 

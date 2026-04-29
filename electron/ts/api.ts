@@ -1,5 +1,5 @@
 import { app, shell, BrowserWindow, Menu, Notification, ipcMain, session } from 'electron';
-import { is } from 'electron-util';
+import { is, fixPathForAsarUnpack } from 'electron-util';
 import fs from 'fs';
 import path from 'path';
 import keytar from 'keytar';
@@ -105,6 +105,120 @@ class Api {
 
 			callBack?.();
 		});
+	};
+
+	/**
+	 * Build sync-fs launch params from the current ConfigManager state for the
+	 * active space. Returns null when no workspace is configured for the
+	 * currently-active space (sync-fs should be stopped, not started).
+	 */
+	private buildSyncFsParams (): import('./syncFs').SyncFsLaunchParams | null {
+		const heartGrpcAddr = Server.getGrpcAddress();
+		if (!heartGrpcAddr) {
+			return null;
+		};
+
+		const cfg = ConfigManager.config;
+		const activeId = process.env.ANYTYPE_SPACE_ID || cfg.activeSpaceId || '';
+		const ws = activeId ? (cfg.workspaces || {})[activeId] : null;
+		const workspace = process.env.ANYTYPE_WORKSPACE_PATH || ws?.path || '';
+		if (!workspace || !activeId) {
+			return null;
+		};
+
+		const syncFsBinPath = fixPathForAsarUnpack(
+			path.join(__dirname, 'dist', `anytype-sync-fs${is.windows ? '.exe' : ''}`)
+		);
+
+		return {
+			binPath: syncFsBinPath,
+			heartAddr: heartGrpcAddr,
+			workspace,
+			token: process.env.ANYTYPE_SYNC_TOKEN || cfg.syncToken || '',
+			spaceId: activeId,
+			excludes: ws?.excludes || [],
+		};
+	};
+
+	/**
+	 * Persist a workspace path / exclude list for one specific space. Settings
+	 * pages call this with `spaceId` set to the space the user is currently
+	 * viewing. Also makes that space the active sync target and applies.
+	 */
+	async setSyncFsSpaceConfig (win: AppWindow, params: {
+		spaceId: string;
+		workspacePath?: string;
+		workspaceExcludes?: string[];
+	}): Promise<{ ok: boolean; error?: string }> {
+		if (!params?.spaceId) {
+			return { ok: false, error: 'spaceId is required' };
+		};
+
+		const next = { ...(ConfigManager.config.workspaces || {}) };
+		const prev = next[params.spaceId] || {};
+		next[params.spaceId] = {
+			path: 'workspacePath' in params ? (params.workspacePath || '') : (prev.path || ''),
+			excludes: 'workspaceExcludes' in params ? (params.workspaceExcludes || []) : (prev.excludes || []),
+		};
+
+		await new Promise<void>((resolve) => {
+			ConfigManager.set({ workspaces: next, activeSpaceId: params.spaceId }, () => resolve());
+		});
+		Util.send(win, 'config', ConfigManager.config);
+
+		try {
+			await SyncFs.applyConfig(this.buildSyncFsParams());
+			return { ok: true };
+		} catch (err: any) {
+			console.error('[Api] setSyncFsSpaceConfig: applyConfig failed:', err);
+			return { ok: false, error: String(err?.message || err) };
+		};
+	};
+
+	/**
+	 * Switch which space's persisted config drives the running sync-fs process.
+	 * Called on user-driven space switches in the renderer. If the new active
+	 * space has no configured workspace, sync-fs is stopped.
+	 */
+	async setSyncFsActiveSpace (win: AppWindow, spaceId: string): Promise<{ ok: boolean; error?: string }> {
+		spaceId = String(spaceId || '');
+
+		await new Promise<void>((resolve) => {
+			ConfigManager.set({ activeSpaceId: spaceId }, () => resolve());
+		});
+		Util.send(win, 'config', ConfigManager.config);
+
+		try {
+			await SyncFs.applyConfig(this.buildSyncFsParams());
+			return { ok: true };
+		} catch (err: any) {
+			console.error('[Api] setSyncFsActiveSpace: applyConfig failed:', err);
+			return { ok: false, error: String(err?.message || err) };
+		};
+	};
+
+	/**
+	 * Persist + hot-apply a fresh session token. Heart issues a new token at
+	 * each login so this fires from auth.ts::tokenSet whenever the token
+	 * changes.
+	 */
+	async setSyncFsToken (win: AppWindow, token: string): Promise<void> {
+		token = String(token || '');
+		await new Promise<void>((resolve) => {
+			ConfigManager.set({ syncToken: token }, () => resolve());
+		});
+		Util.send(win, 'config', ConfigManager.config);
+
+		try {
+			await SyncFs.applyConfig(this.buildSyncFsParams());
+		} catch (err: any) {
+			console.error('[Api] setSyncFsToken: applyConfig failed:', err);
+		};
+	};
+
+	relaunch (win: AppWindow): void {
+		app.relaunch();
+		app.quit();
 	};
 
 	setPinChecked (win: AppWindow, isPinChecked: boolean, pinTimeout: number, hasPinSet?: boolean): void {

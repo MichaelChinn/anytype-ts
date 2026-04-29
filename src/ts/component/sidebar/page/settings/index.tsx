@@ -113,6 +113,12 @@ const SidebarPageSettingsIndex = forwardRef<{}, I.SidebarPageComponent>((props, 
 					{ id: 'api', iconParam: { name: 'settings/api' } },
 				],
 			},
+			{
+				id: 'forkSettings', name: translate('popupSettingsForkSettingsTitle'), children: [
+					{ id: 'forkRoot', iconParam: { name: 'settings/storage' } },
+					{ id: 'forkExclude', iconParam: { name: 'common/bin' } },
+				],
+			},
 		].map(s => {
 			s.children = s.children.filter(it => it).map((c: any) => {
 				c.name = map[c.id];

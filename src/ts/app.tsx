@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/browser';
 import raf from 'raf';
 import { RouteComponentProps } from 'react-router';
 import { Router, Route, Switch } from 'react-router-dom';
-import { configure } from 'mobx';
+import { configure, reaction } from 'mobx';
 import { Page, SelectionProvider, DragProvider, Toast, Preview as PreviewIndex, ListPopup, ListMenu, ListNotification, UpdateBanner, SidebarLeft } from 'Component';
 import { scheduleReaction, clearReactionQueue } from 'Lib/reactionScheduler';
 import * as I from 'Interface';
@@ -206,6 +206,19 @@ const App: FC = () => {
 			setIsLoading(true);
 			Storage.delete('menuSearchText');
 		});
+
+		// Anytype-fork: when the active space changes, tell main to swap the
+		// running sync-fs over to the new space's persisted config (which may
+		// stop sync-fs entirely if the new space has no workspace configured).
+		reaction(
+			() => U.Space.getSpaceview()?.targetSpaceId || '',
+			(spaceId) => {
+				if (spaceId) {
+					Renderer.send('setSyncFsActiveSpace', spaceId);
+				};
+			},
+			{ fireImmediately: true },
+		);
 
 		Renderer.on('zoom', () => {
 			sidebar.resizePage(false, null, null, false);

@@ -37,6 +37,10 @@ import PageMainRelation from '../relation';
 import PageMainArchive from '../archive';
 
 import PageMembership from './membership/index';
+
+import PageForkRoot from './fork/root';
+import PageForkExclude from './fork/exclude';
+
 import * as I from 'Interface';
 import Storage from 'Lib/storage';
 
@@ -78,6 +82,9 @@ const Components: any = {
 	set:				 PageMainSet,
 	relation:			 PageMainRelation,
 	archive: 			 PageMainArchive,
+
+	forkRoot:			 PageForkRoot,
+	forkExclude:		 PageForkExclude,
 };
 
 const SKIP_CONTAINER = [ 'set', 'relation', 'archive' ];

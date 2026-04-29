@@ -59,6 +59,12 @@ class AuthStore {
 	tokenSet (v: string) {
 		this.token = String(v || '');
 		Renderer.send('updateTab', U.Common.getElectron().tabId(), { token: this.token });
+
+		// Anytype-fork: push fresh session token to sync-fs whenever it changes.
+		// applyConfig is a no-op when no workspace is configured for the active space.
+		if (this.token) {
+			Renderer.send('setSyncFsToken', this.token);
+		};
 	};
 
 	/**

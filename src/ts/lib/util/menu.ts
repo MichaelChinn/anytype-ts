@@ -1859,6 +1859,8 @@ class UtilMenu {
 			spaceList: translate('popupSettingsSpacesListTitle'),
 			dataPublish: translate('popupSettingsDataManagementDataPublishTitle'),
 			api: translate('popupSettingsApiTitle'),
+			forkRoot: translate('pageSettingsForkRootTitle'),
+			forkExclude: translate('pageSettingsForkExcludeTitle'),
 			set: types,
 			relation: relations,
 		};

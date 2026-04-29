@@ -173,17 +173,22 @@ function waitForLibraryAndCreateWindows () {
 	waitLibraryPromise.then(() => {
 		global.serverAddress = Server.getAddress();
 
-		// Anytype-fork: launch the filesystem sync service alongside heart.
-		// Skips silently if no workspace is configured or the binary is missing.
-		const workspace = process.env.ANYTYPE_WORKSPACE_PATH || (store.get('workspacePath') as string) || '';
+		// Anytype-fork: launch the filesystem sync service for the active space.
+		// Per-space: each space has its own workspace path and exclude list under
+		// cfg.workspaces[spaceId]. cfg.activeSpaceId picks which one is mirrored.
+		const cfg = ConfigManager.config;
 		const heartGrpcAddr = Server.getGrpcAddress();
-		if (workspace && heartGrpcAddr) {
+		const activeId = process.env.ANYTYPE_SPACE_ID || cfg.activeSpaceId || '';
+		const ws = activeId ? (cfg.workspaces || {})[activeId] : null;
+		const workspace = process.env.ANYTYPE_WORKSPACE_PATH || ws?.path || '';
+		if (workspace && activeId && heartGrpcAddr) {
 			SyncFs.start({
 				binPath: syncFsBinPath,
 				heartAddr: heartGrpcAddr,
 				workspace,
-				token: process.env.ANYTYPE_SYNC_TOKEN || '',
-				spaceId: process.env.ANYTYPE_SPACE_ID || '',
+				token: process.env.ANYTYPE_SYNC_TOKEN || cfg.syncToken || '',
+				spaceId: activeId,
+				excludes: ws?.excludes || [],
 			}).catch((err: Error) => {
 				console.error('[main] SyncFs start failed:', err);
 			});

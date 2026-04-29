@@ -1,21 +1,17 @@
 @import "~scss/_mixins";
 
-.sidebarPage.pageExplorer { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+/* Anytype-fork: file explorer page.
+ *
+ * Wrapper, header, and body layout come from common.scss (.sidebarPage > .head,
+ * .sidebarPage > .body, .spaceName) so the explorer matches the legacy widget
+ * sidebar visually. Only the tree-item rules below are explorer-specific.
+ */
 .sidebarPage.pageExplorer {
-	.sidebarPageExplorer {
-		display: flex; flex-direction: column; flex-grow: 1; min-height: 0; height: 100%;
-	}
+	.filter { margin: 0px 4px 8px 4px; }
 
-	.head { padding: 0px 8px 8px 8px; flex-shrink: 0; }
-	.head {
-		.spaceName { margin: 0px 0px 8px 0px; padding: 0px; }
-		.filter { margin-top: 4px; }
-	}
-
-	.body { flex-grow: 1; min-height: 0; position: relative; padding: 0px 8px 8px 8px; }
-	.body {
+	.explorerList { flex-grow: 1; min-height: 0; position: relative; }
+	.explorerList {
 		.scrollArea { width: 100%; height: 100%; }
-
 		.emptyWrap { padding: 16px 8px; text-align: center; }
 		.emptyWrap {
 			.empty { color: var(--color-text-tertiary); }
@@ -55,13 +51,25 @@
 	}
 
 	.item.isSection {
-		.inner { padding-left: 8px; height: 36px; align-items: flex-end; }
+		.inner { padding: 16px 8px 6px 8px; height: auto; align-items: center; cursor: default; }
+		.inner::before { display: none; }
+		.inner:hover::before, .inner.hover::before { display: none; opacity: 0; }
 		.inner {
-			.label { color: var(--color-text-tertiary); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+			.label { color: var(--color-text-tertiary); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; }
 		}
+	}
+	.item.isSection:first-child {
+		.inner { padding-top: 4px; }
 	}
 
 	.item.isMuted {
 		.name { color: var(--color-text-tertiary); }
+	}
+
+	/* Drop highlight when dragging onto a Collection item. The inner row
+	 * gets the same shape-highlight that hover uses so the depth-padding
+	 * inset is preserved. */
+	.item.isDropTarget {
+		.inner::before { opacity: 1; }
 	}
 }

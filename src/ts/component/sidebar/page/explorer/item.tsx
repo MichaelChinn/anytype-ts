@@ -1,6 +1,5 @@
-import React, { forwardRef, useRef, MouseEvent } from 'react';
+import React, { forwardRef, useRef, MouseEvent, DragEvent } from 'react';
 import { Icon, IconObject, ObjectName, Label } from 'Component';
-import * as I from 'Interface';
 import Storage from 'Lib/storage';
 
 interface ExplorerItemProps {
@@ -17,11 +16,20 @@ interface ExplorerItemProps {
 	onToggle(e: MouseEvent, props: ExplorerItemProps): void;
 	getSubId(): string;
 	getSubKey(): string;
+	onItemDragStart?(e: DragEvent, props: ExplorerItemProps, object: any): void;
+	onItemDragOver?(e: DragEvent, props: ExplorerItemProps, object: any): void;
+	onItemDragLeave?(e: DragEvent): void;
+	onItemDrop?(e: DragEvent, props: ExplorerItemProps, object: any): void;
+	onItemContextMenu?(e: MouseEvent, props: ExplorerItemProps, object: any): void;
 };
 
 const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) => {
 
-	const { id, depth, numChildren, isSection, treeKey, style, onClick, onToggle, getSubId, getSubKey } = props;
+	const {
+		id, depth, numChildren, isSection, treeKey, style,
+		onClick, onToggle, getSubId, getSubKey,
+		onItemDragStart, onItemDragOver, onItemDragLeave, onItemDrop, onItemContextMenu,
+	} = props;
 	const nodeRef = useRef<HTMLDivElement>(null);
 	const subId = getSubId();
 	const subKey = getSubKey();
@@ -30,6 +38,7 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 	const layout = object?.resolvedLayout ?? object?.layout;
 	const isCollection = object && U.Object.isCollectionLayout(layout);
 	const paddingLeft = (depth > 1) ? ((depth - 1) * 12) : 4;
+	const canDrag = !!object && !!onItemDragStart && U.Space.canMyParticipantWrite();
 
 	const cn = [ 'item', `depth${depth}` ];
 	if (isOpen) {
@@ -85,12 +94,34 @@ const ExplorerItem = forwardRef<HTMLDivElement, ExplorerItemProps>((props, ref) 
 		);
 	};
 
+	const onDragStart = (e: DragEvent) => {
+		onItemDragStart?.(e, props, object);
+	};
+	const onDragOver = (e: DragEvent) => {
+		onItemDragOver?.(e, props, object);
+	};
+	const onDragLeave = (e: DragEvent) => {
+		onItemDragLeave?.(e);
+	};
+	const onDrop = (e: DragEvent) => {
+		onItemDrop?.(e, props, object);
+	};
+	const onContextMenu = (e: MouseEvent) => {
+		onItemContextMenu?.(e, props, object);
+	};
+
 	return (
 		<div
 			ref={nodeRef}
 			id={treeKey}
 			className={cn.join(' ')}
 			style={style}
+			draggable={canDrag}
+			onDragStart={onDragStart}
+			onDragOver={onDragOver}
+			onDragLeave={onDragLeave}
+			onDrop={onDrop}
+			onContextMenu={onContextMenu}
 		>
 			<div className="inner" style={{ paddingLeft }}>
 				<div className="clickable" onMouseDown={e => onClick(e, object)}>
