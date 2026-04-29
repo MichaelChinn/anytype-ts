@@ -9,6 +9,8 @@ import Space from './space';
 import JoinSpace from './joinSpace';
 import Onboarding from './onboarding';
 import BlockAdd from './blockAdd';
+import NewFolder from './newFolder';
+import NewPage from './newPage';
 
 registerIcon('plus/menu', Menu);
 registerIcon('plus/comment', Comment);
@@ -20,3 +22,5 @@ registerIcon('plus/space', Space);
 registerIcon('plus/joinSpace', JoinSpace);
 registerIcon('plus/onboarding', Onboarding);
 registerIcon('plus/blockAdd', BlockAdd);
+registerIcon('plus/newFolder', NewFolder);
+registerIcon('plus/newPage', NewPage);

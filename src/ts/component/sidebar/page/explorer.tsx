@@ -683,7 +683,7 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 				<div className="side right">
 					<Icon
 						id="button-explorer-new-folder"
-						name="plus/menu"
+						name="plus/newFolder"
 						className="plus newFolder"
 						withBackground={true}
 						onClick={onNewFolder}
@@ -691,7 +691,7 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 					/>
 					<Icon
 						id="button-explorer-new-page"
-						name="plus/menu"
+						name="plus/newPage"
 						className="plus newPage"
 						withBackground={true}
 						onClick={onNewPage}
