@@ -2417,6 +2417,8 @@
 	"sidebarExplorerOpen": "Open",
 	"sidebarExplorerOpenInNewWindow": "Open in new window",
 	"sidebarExplorerRemoveFromCollection": "Remove from folder",
+	"sidebarExplorerNewPage": "New page",
+	"sidebarExplorerNewFolder": "New folder",
 
 	"sidebarObjectShow": "Show",
 	"sidebarObjectSort": "Sort",

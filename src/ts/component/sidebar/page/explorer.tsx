@@ -404,6 +404,46 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 		keyboard.setDragging(false);
 	};
 
+	// --- Create new page / folder --------------------------------------------
+	// Both call C.ObjectCreate with the appropriate uniqueKey. Heart emits an
+	// event after creation -> sync-fs writes the file or directory under the
+	// workspace root (via writePageObject / writeCollectionObject in pipeline.go).
+	// New pages open in the editor; new folders just appear in the explorer.
+
+	const createObject = (typeKey: string, openAfter: boolean, route: string): void => {
+		if (!space) {
+			return;
+		};
+		if (!U.Space.canMyParticipantWrite()) {
+			return;
+		};
+
+		C.ObjectCreate({}, [], '', typeKey, space, (message: any) => {
+			if (message.error?.code) {
+				return;
+			};
+
+			const object = message.details;
+			analytics.createObject(object?.type, object?.layout, route, message.middleTime);
+
+			if (openAfter && object) {
+				U.Object.openConfig(null, object);
+			};
+		});
+	};
+
+	const onNewPage = (e: MouseEvent): void => {
+		e.preventDefault();
+		e.stopPropagation();
+		createObject('ot-page', true, 'SidebarExplorerNewPage');
+	};
+
+	const onNewFolder = (e: MouseEvent): void => {
+		e.preventDefault();
+		e.stopPropagation();
+		createObject('ot-collection', false, 'SidebarExplorerNewFolder');
+	};
+
 	// --- Context menu --------------------------------------------------------
 
 	const onItemContextMenu = (e: MouseEvent, node: ExplorerNode, object: any): void => {
@@ -640,7 +680,24 @@ const SidebarPageExplorer = forwardRef<{}, I.SidebarPageComponent>((props, ref) 
 						tooltipParam={{ text: translate('commonToggleSidebar'), typeY: I.MenuDirection.Bottom }}
 					/>
 				</div>
-				<div className="side right" />
+				<div className="side right">
+					<Icon
+						id="button-explorer-new-folder"
+						name="plus/menu"
+						className="plus newFolder"
+						withBackground={true}
+						onClick={onNewFolder}
+						tooltipParam={{ text: translate('sidebarExplorerNewFolder'), typeY: I.MenuDirection.Bottom }}
+					/>
+					<Icon
+						id="button-explorer-new-page"
+						name="plus/menu"
+						className="plus newPage"
+						withBackground={true}
+						onClick={onNewPage}
+						tooltipParam={{ text: translate('sidebarExplorerNewPage'), typeY: I.MenuDirection.Bottom }}
+					/>
+				</div>
 			</div>
 
 			<div
