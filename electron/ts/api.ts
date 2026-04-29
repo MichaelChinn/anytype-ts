@@ -94,6 +94,36 @@ class Api {
 		};
 	};
 
+	// Anytype-fork: read a custom-type renderer config from
+	// <workspace>/.anytype/renderers/<typeKey>.json. Used by
+	// useRendererConfig in the renderer so the editor can swap the
+	// block-based renderer for a per-type layout config without going
+	// through heart. Returns null when the file is missing or unparsable.
+	getRendererConfig (_win: AppWindow, typeKey: string): any {
+		if (!typeKey || (typeof typeKey !== 'string')) {
+			return null;
+		};
+		const safe = typeKey.replace(/[^a-z0-9_-]+/gi, '');
+		if (!safe) {
+			return null;
+		};
+		const ws = process.env.ANYTYPE_WORKSPACE_PATH || ConfigManager.config?.workspacePath;
+		if (!ws) {
+			return null;
+		};
+		const file = path.join(ws as string, '.anytype', 'renderers', `${safe}.json`);
+		try {
+			const buf = fs.readFileSync(file, 'utf8');
+			const parsed = JSON.parse(buf);
+			if (parsed && Array.isArray(parsed.sections)) {
+				return parsed;
+			};
+			return null;
+		} catch (err) {
+			return null;
+		};
+	};
+
 	setConfig (win: AppWindow, config: Partial<AppConfig>, callBack?: () => void): void {
 		ConfigManager.set(config, () => {
 			Util.send(win, 'config', ConfigManager.config);
