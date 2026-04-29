@@ -1,16 +1,16 @@
 import React from 'react';
 
-// Outline folder shape with a "+" centered in the body — matches the stroke
-// style of menu/action/folder.tsx (1.5px stroke, rounded joins) so the icon
-// reads consistently next to other Anytype icons.
+// Filled folder silhouette with a "+" cut out via fill-rule="evenodd" — same
+// solid-fill style as plus/menu.tsx and header/settings.tsx so the icon reads
+// as a sibling next to those in the explorer header.
 const NewFolder = (props: React.SVGProps<SVGSVGElement>) => (
 	<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
 		<path
-			d="M16.6666 14.6667C16.6666 15.0203 16.5261 15.3594 16.2761 15.6095C16.026 15.8595 15.6869 16 15.3333 16H4.66659C4.31296 16 3.97382 15.8595 3.72378 15.6095C3.47373 15.3594 3.33325 15.0203 3.33325 14.6667V5.33333C3.33325 4.97971 3.47373 4.64057 3.72378 4.39052C3.97382 4.14048 4.31296 4 4.66659 4H7.46474C7.79909 4 8.11132 4.1671 8.29679 4.4453L9.03639 5.5547C9.22185 5.8329 9.53408 6 9.86844 6H15.3333C15.6869 6 16.026 6.14048 16.2761 6.39052C16.5261 6.64057 16.6666 6.97971 16.6666 7.33333V14.6667Z"
-			stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+			fillRule="evenodd"
+			clipRule="evenodd"
+			d="M2 5.75C2 4.7835 2.7835 4 3.75 4H7.25C7.64556 4 8.01646 4.18437 8.25622 4.49609L9.24378 5.75391C9.48354 6.06563 9.85444 6.25 10.25 6.25H16.25C17.2165 6.25 18 7.0335 18 8V14.25C18 15.2165 17.2165 16 16.25 16H3.75C2.7835 16 2 15.2165 2 14.25V5.75ZM14.5 11.75C14.9142 11.75 15.25 12.0858 15.25 12.5C15.25 12.9142 14.9142 13.25 14.5 13.25H13.25V14.5C13.25 14.9142 12.9142 15.25 12.5 15.25C12.0858 15.25 11.75 14.9142 11.75 14.5V13.25H10.5C10.0858 13.25 9.75 12.9142 9.75 12.5C9.75 12.0858 10.0858 11.75 10.5 11.75H11.75V10.5C11.75 10.0858 12.0858 9.75 12.5 9.75C12.9142 9.75 13.25 10.0858 13.25 10.5V11.75H14.5Z"
+			fill="currentColor"
 		/>
-		<path d="M10 9.25V12.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-		<path d="M8.25 11H11.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
 	</svg>
 );
 

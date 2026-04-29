@@ -1,17 +1,16 @@
 import React from 'react';
 
-// Outline document with a folded top-right corner and a "+" centered in the
-// body — same stroke language (1.5px, rounded joins) as the rest of the
-// stroke-style menu icons so it reads as a sibling to NewFolder above.
+// Filled document silhouette with a folded top-right corner and a "+" cut out
+// via fill-rule="evenodd" — matches the solid-fill style of plus/menu.tsx and
+// header/settings.tsx so the icon reads as a sibling in the header bar.
 const NewPage = (props: React.SVGProps<SVGSVGElement>) => (
 	<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
 		<path
-			d="M5.33325 3.33333H11.3333L15.3333 7.33333V15.3333C15.3333 15.687 15.1928 16.0261 14.9428 16.2761C14.6927 16.5262 14.3536 16.6667 13.9999 16.6667H5.33325C4.97963 16.6667 4.64049 16.5262 4.39044 16.2761C4.1404 16.0261 3.99992 15.687 3.99992 15.3333V4.66667C3.99992 4.31304 4.1404 3.97391 4.39044 3.72386C4.64049 3.47381 4.97963 3.33333 5.33325 3.33333Z"
-			stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+			fillRule="evenodd"
+			clipRule="evenodd"
+			d="M5 3.75C5 2.7835 5.7835 2 6.75 2H11.25C11.4489 2 11.6397 2.07902 11.7803 2.21967L15.7803 6.21967C15.921 6.36032 16 6.55109 16 6.75V16.25C16 17.2165 15.2165 18 14.25 18H6.75C5.7835 18 5 17.2165 5 16.25V3.75ZM11.75 13.25H13C13.4142 13.25 13.75 12.9142 13.75 12.5C13.75 12.0858 13.4142 11.75 13 11.75H11.75V10.5C11.75 10.0858 11.4142 9.75 11 9.75C10.5858 9.75 10.25 10.0858 10.25 10.5V11.75H9C8.58579 11.75 8.25 12.0858 8.25 12.5C8.25 12.9142 8.58579 13.25 9 13.25H10.25V14.5C10.25 14.9142 10.5858 15.25 11 15.25C11.4142 15.25 11.75 14.9142 11.75 14.5V13.25Z"
+			fill="currentColor"
 		/>
-		<path d="M11.3333 3.33333V7.33333H15.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-		<path d="M9.66659 10.5V13.8333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-		<path d="M7.99992 12.1667H11.3333" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
 	</svg>
 );
 
